@@ -2,200 +2,251 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Block Blast Web</title>
+<title>Block Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
-  margin: 0;
-  background: #0f172a;
-  color: white;
-  font-family: Arial, sans-serif;
-  text-align: center;
+body{
+  margin:0;
+  background:#121212;
+  color:#fff;
+  font-family:Arial,sans-serif;
+  text-align:center;
 }
 
-h1 {
-  margin: 10px;
+header{
+  background:#1f1f1f;
+  padding:14px;
+  font-size:22px;
+  font-weight:bold;
+  letter-spacing:1px;
 }
 
-#score {
-  font-size: 20px;
-  margin-bottom: 10px;
+#info{
+  display:flex;
+  justify-content:space-around;
+  padding:10px;
+  font-size:16px;
 }
 
-#board {
-  display: grid;
-  grid-template-columns: repeat(8, 40px);
-  gap: 4px;
-  justify-content: center;
-  margin: 20px auto;
+#board{
+  width:320px;
+  height:320px;
+  margin:10px auto;
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  grid-template-rows:repeat(8,1fr);
+  gap:3px;
+  background:#2a2a2a;
+  padding:6px;
+  border-radius:14px;
 }
 
-.cell {
-  width: 40px;
-  height: 40px;
-  background: #1e293b;
-  border-radius: 6px;
+.cell{
+  background:#1c1c1c;
+  border-radius:6px;
 }
 
-.block {
-  background: #22c55e;
+.filled{
+  background:linear-gradient(145deg,#4ade80,#22c55e);
+  box-shadow:0 0 6px rgba(34,197,94,.7);
 }
 
-#blocks {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
+#tray{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  margin:18px 0;
 }
 
-.blockOption {
-  display: grid;
-  grid-template-columns: repeat(3, 20px);
-  gap: 3px;
-  cursor: pointer;
+.shape{
+  display:grid;
+  gap:3px;
+  touch-action:none;
 }
 
-.blockOption div {
-  width: 20px;
-  height: 20px;
-  background: #22c55e;
-  border-radius: 4px;
+.block{
+  width:28px;
+  height:28px;
+  border-radius:6px;
+  background:linear-gradient(145deg,#4ade80,#22c55e);
+  box-shadow:0 0 6px rgba(34,197,94,.8);
 }
 
-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  background: #22c55e;
-  font-size: 16px;
-  cursor: pointer;
-  margin-top: 10px;
+#gameOver{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  font-size:32px;
+  font-weight:bold;
+  color:#f87171;
+  z-index:10;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🟩 Block Blast</h1>
-<div id="score">Pontuação: 0</div>
+<header>🟩 Block Pro</header>
+
+<div id="info">
+  <div>Pontos: <span id="score">0</span></div>
+  <div>Recorde: <span id="record">0</span></div>
+</div>
 
 <div id="board"></div>
+<div id="tray"></div>
 
-<h3>Escolha um bloco</h3>
-<div id="blocks"></div>
+<div id="gameOver">GAME OVER</div>
 
-<button onclick="resetGame()">🔄 Reiniciar</button>
+<audio id="placeSound">
+  <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=">
+</audio>
 
 <script>
-const boardSize = 8;
-let score = 0;
-let board = [];
-let selectedBlock = null;
+const boardEl=document.getElementById("board");
+const trayEl=document.getElementById("tray");
+const scoreEl=document.getElementById("score");
+const recordEl=document.getElementById("record");
+const gameOverEl=document.getElementById("gameOver");
+const sound=document.getElementById("placeSound");
 
-// Criar tabuleiro
-function createBoard() {
-  board = [];
-  boardEl.innerHTML = "";
-  for (let i = 0; i < boardSize * boardSize; i++) {
-    board.push(0);
-    const cell = document.createElement("div");
-    cell.className = "cell";
-    cell.onclick = () => placeBlock(i);
-    boardEl.appendChild(cell);
-  }
-}
+let board=Array(64).fill(0);
+let score=0;
+let record=Number(localStorage.getItem("record_blockpro"))||0;
+recordEl.innerText=record;
 
-// Blocos possíveis
-const shapes = [
-  [[1]],
-  [[1,1]],
-  [[1],[1]],
-  [[1,1],[1,1]],
-  [[1,1,1]],
-  [[1],[1],[1]]
-];
-
-// Criar opções de blocos
-function createBlocks() {
-  blocksEl.innerHTML = "";
-  shapes.forEach(shape => {
-    const opt = document.createElement("div");
-    opt.className = "blockOption";
-    shape.flat().forEach(v => {
-      const d = document.createElement("div");
-      if (!v) d.style.visibility = "hidden";
-      opt.appendChild(d);
-    });
-    opt.onclick = () => selectedBlock = shape;
-    blocksEl.appendChild(opt);
+// ===== TABULEIRO
+function drawBoard(){
+  boardEl.innerHTML="";
+  board.forEach(v=>{
+    const d=document.createElement("div");
+    d.className="cell"+(v?" filled":"");
+    boardEl.appendChild(d);
   });
 }
 
-// Colocar bloco
-function placeBlock(index) {
-  if (!selectedBlock) return;
+// ===== FORMAS
+const shapes=[
+  [[1]],
+  [[1,1]],
+  [[1],[1]],
+  [[1,1,1]],
+  [[1],[1],[1]],
+  [[1,1],[1,1]]
+];
 
-  const row = Math.floor(index / boardSize);
-  const col = index % boardSize;
+// ===== CRIAR BLOCO
+function createShape(){
+  const s=shapes[Math.floor(Math.random()*shapes.length)];
+  const el=document.createElement("div");
+  el.className="shape";
+  el.shape=s;
+  el.style.gridTemplateColumns=`repeat(${s[0].length},28px)`;
+  s.flat().forEach(c=>{
+    const b=document.createElement("div");
+    b.className="block";
+    el.appendChild(b);
+  });
+  trayEl.appendChild(el);
+  drag(el);
+}
 
-  for (let r = 0; r < selectedBlock.length; r++) {
-    for (let c = 0; c < selectedBlock[r].length; c++) {
-      if (selectedBlock[r][c]) {
-        const i = (row + r) * boardSize + (col + c);
-        if (row + r >= boardSize || col + c >= boardSize || board[i]) return;
+// ===== GERAR 3
+function refillTray(){
+  trayEl.innerHTML="";
+  for(let i=0;i<3;i++) createShape();
+}
+
+// ===== DRAG
+function drag(el){
+  let ox,oy;
+  el.onpointerdown=e=>{
+    ox=e.offsetX;
+    oy=e.offsetY;
+    el.setPointerCapture(e.pointerId);
+    el.style.position="absolute";
+  };
+  el.onpointermove=e=>{
+    el.style.left=e.pageX-ox+"px";
+    el.style.top=e.pageY-oy+"px";
+  };
+  el.onpointerup=e=>{
+    el.releasePointerCapture(e.pointerId);
+    const r=boardEl.getBoundingClientRect();
+    if(e.pageX>r.left&&e.pageX<r.right&&e.pageY>r.top&&e.pageY<r.bottom){
+      const c=Math.floor((e.pageX-r.left)/40);
+      const l=Math.floor((e.pageY-r.top)/40);
+      const i=l*8+c;
+      if(place(el.shape,i)){
+        el.remove();
+        sound.currentTime=0;
+        sound.play();
+        score+=10;
+        scoreEl.innerText=score;
+        if(trayEl.children.length===0) setTimeout(refillTray,300);
+        checkGameOver();
+        return;
       }
     }
-  }
+    el.style.position="static";
+  };
+}
 
-  for (let r = 0; r < selectedBlock.length; r++) {
-    for (let c = 0; c < selectedBlock[r].length; c++) {
-      if (selectedBlock[r][c]) {
-        const i = (row + r) * boardSize + (col + c);
-        board[i] = 1;
-        boardEl.children[i].classList.add("block");
-        score++;
+// ===== COLOCAR
+function place(s,i){
+  const w=s[0].length;
+  for(let r=0;r<s.length;r++)
+    for(let c=0;c<w;c++)
+      if(s[r][c]&&(i+r*8+c>=64||board[i+r*8+c])) return false;
+
+  for(let r=0;r<s.length;r++)
+    for(let c=0;c<w;c++)
+      if(s[r][c]) board[i+r*8+c]=1;
+
+  drawBoard();
+  return true;
+}
+
+// ===== GAME OVER
+function checkGameOver(){
+  const ok=[...trayEl.children].some(el=>{
+    for(let i=0;i<64;i++)
+      if(place(el.shape,i)){
+        board=board.map(()=>0);
+        drawBoard();
+        return true;
       }
+    return false;
+  });
+
+  if(!ok){
+    gameOverEl.style.display="flex";
+    if(score>record){
+      record=score;
+      localStorage.setItem("record_blockpro",record);
+      recordEl.innerText=record;
     }
-  }
-
-  scoreEl.innerText = "Pontuação: " + score;
-  selectedBlock = null;
-  checkLines();
-}
-
-// Limpar linhas completas
-function checkLines() {
-  for (let r = 0; r < boardSize; r++) {
-    let full = true;
-    for (let c = 0; c < boardSize; c++) {
-      if (!board[r * boardSize + c]) full = false;
-    }
-    if (full) clearRow(r);
+    setTimeout(resetGame,2000);
   }
 }
 
-function clearRow(r) {
-  for (let c = 0; c < boardSize; c++) {
-    board[r * boardSize + c] = 0;
-    boardEl.children[r * boardSize + c].classList.remove("block");
-  }
-  score += 10;
-  scoreEl.innerText = "Pontuação: " + score;
+// ===== RESET
+function resetGame(){
+  gameOverEl.style.display="none";
+  board=Array(64).fill(0);
+  score=0;
+  scoreEl.innerText=0;
+  drawBoard();
+  refillTray();
 }
 
-// Reiniciar
-function resetGame() {
-  score = 0;
-  scoreEl.innerText = "Pontuação: 0";
-  createBoard();
-}
-
-const boardEl = document.getElementById("board");
-const blocksEl = document.getElementById("blocks");
-const scoreEl = document.getElementById("score");
-
-createBoard();
-createBlocks();
+// START
+drawBoard();
+refillTray();
 </script>
 
 </body>
