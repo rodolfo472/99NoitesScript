@@ -63,3 +63,112 @@ button {
 }
 
 .panel div {
+  flex: 1;
+  background: #020617;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>🎮 AI Prof - Game Chat</header>
+
+<div class="container" id="auth">
+  <h3>Registrar / Login</h3>
+  <input id="name" placeholder="Nome">
+  <input id="pass" type="password" placeholder="Senha">
+  <button onclick="login()">Entrar / Registrar</button>
+</div>
+
+<div class="container hidden" id="game">
+
+  <div class="panel">
+    <div>💰 Moedas<br><span id="coins">0</span></div>
+    <div>🏆 Ranking<br><span id="rank">1</span></div>
+  </div>
+
+  <div id="chat"></div>
+
+  <input id="msg" placeholder="Digite sua mensagem">
+  <button onclick="send()">Enviar</button>
+
+  <hr>
+
+  <button onclick="buyPrize()">🎁 Comprar Prêmio (100.000 moedas)</button>
+
+</div>
+
+<script>
+let user = null;
+let coins = 0;
+
+function login() {
+  const name = document.getElementById("name").value;
+  const pass = document.getElementById("pass").value;
+
+  if (!name || !pass) {
+    alert("Preencha tudo");
+    return;
+  }
+
+  user = name;
+  coins = Number(localStorage.getItem("coins_" + user)) || 0;
+
+  document.getElementById("auth").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+
+  systemMsg("Bem-vindo, " + user + "!");
+  update();
+}
+
+function send() {
+  const msg = document.getElementById("msg").value;
+  if (!msg) return;
+
+  chatMsg(user + ": " + msg, "user");
+  document.getElementById("msg").value = "";
+}
+
+function chatMsg(text, cls) {
+  const div = document.createElement("div");
+  div.className = "msg " + cls;
+  div.innerText = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function systemMsg(text) {
+  chatMsg("[Sistema] " + text, "system");
+}
+
+function update() {
+  document.getElementById("coins").innerText = coins;
+  document.getElementById("rank").innerText = Math.max(1, Math.floor(coins / 1000));
+  localStorage.setItem("coins_" + user, coins);
+}
+
+// moedas por tempo online
+setInterval(() => {
+  if (user) {
+    coins++;
+    update();
+  }
+}, 1000);
+
+function buyPrize() {
+  if (coins >= 100000) {
+    coins -= 100000;
+    systemMsg("🎉 Você comprou o prêmio!");
+    update();
+  } else {
+    systemMsg("❌ Moedas insuficientes.");
+  }
+}
+</script>
+
+</body>
+</html>
