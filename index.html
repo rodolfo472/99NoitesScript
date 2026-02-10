@@ -2,114 +2,87 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Cadastro</title>
+<title>Login - Chat</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 body {
-  background:#0f172a;
-  color:white;
-  font-family:Arial;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
+  font-family: Arial;
+  background: #0f172a;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
-.card {
-  background:#020617;
-  padding:20px;
-  border-radius:14px;
-  width:300px;
+.box {
+  background: #020617;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
 }
 input, select, button {
-  width:100%;
-  padding:10px;
-  margin-top:8px;
-  border-radius:8px;
-  border:none;
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: none;
 }
-button { background:#22c55e; }
-small { opacity:0.8; }
+button { background: #22c55e; }
 </style>
 </head>
-
 <body>
 
-<div class="card">
-  <h3>👤 Cadastro</h3>
+<div class="box">
+  <h2>Registrar / Login</h2>
 
   <input id="nome" placeholder="Nome">
-  <input id="senha" type="password" placeholder="Senha">
+  <select id="estado">
+    <option value="">Estado</option>
+    <option value="82">Alagoas</option>
+    <option value="79">Sergipe</option>
+  </select>
 
-  <select id="genero">
-    <option value="">Gênero</option>
+  <select id="sexo">
+    <option value="">Sexo</option>
     <option>Masculino</option>
     <option>Feminino</option>
   </select>
 
-  <select id="estado">
-    <option value="">Estado</option>
-    <option value="82">Alagoas (82)</option>
-    <option value="79">Sergipe (79)</option>
-  </select>
-
-  <small>📱 Seu número será criado automaticamente</small>
-
-  <button onclick="entrar()">Criar conta</button>
+  <button onclick="registrar()">Registrar / Entrar</button>
 </div>
 
 <script>
-function gerarNumero(ddd) {
-  let numero = "9";
-  for (let i = 0; i < 8; i++) {
-    numero += Math.floor(Math.random() * 10);
-  }
-  return ddd + numero;
+function gerarNumero(prefixo) {
+  let resto = "";
+  for (let i = 0; i < 9; i++) resto += Math.floor(Math.random()*10);
+  return prefixo + resto;
 }
 
-function entrar() {
-  const nome = nomeInput.value.trim();
-  const senha = senhaInput.value.trim();
-  const genero = generoSelect.value;
-  const ddd = estadoSelect.value;
+function registrar() {
+  const nome = nome.value.trim();
+  const estado = document.getElementById("estado").value;
+  const sexo = document.getElementById("sexo").value;
 
-  if (!nome || !senha || !genero || !ddd) {
+  if (!nome || !estado || !sexo) {
     alert("Preencha tudo");
     return;
   }
 
-  // gera número único
-  let numero;
-  do {
-    numero = gerarNumero(ddd);
-  } while (localStorage.getItem("user_" + numero));
+  let numero = localStorage.getItem("numero_usuario");
+  if (!numero) numero = gerarNumero(estado);
 
-  const userData = {
-    nome,
-    genero,
-    numero
-  };
+  const user = { nome, estado, sexo, numero };
 
-  // salva usuário
-  localStorage.setItem("usuario_logado", numero);
-  localStorage.setItem("user_" + numero, JSON.stringify(userData));
-
-  // inicializa contatos
-  if (!localStorage.getItem("contatos_" + numero)) {
-    localStorage.setItem("contatos_" + numero, JSON.stringify([]));
-  }
+  localStorage.setItem("usuario", JSON.stringify(user));
+  localStorage.setItem("numero_usuario", numero);
 
   location.href = "chat.html";
 }
 
-const nomeInput = document.getElementById("nome");
-const senhaInput = document.getElementById("senha");
-const generoSelect = document.getElementById("genero");
-const estadoSelect = document.getElementById("estado");
-
 // login automático
-const logado = localStorage.getItem("usuario_logado");
-if (logado) location.href = "chat.html";
+if (localStorage.getItem("usuario")) {
+  location.href = "chat.html";
+}
 </script>
 
 </body>
