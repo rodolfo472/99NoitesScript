@@ -41,7 +41,7 @@ button {
 }
 
 #chat {
-  height: 260px;
+  height: 220px;
   background: #020617;
   border-radius: 8px;
   padding: 10px;
@@ -66,6 +66,12 @@ button {
   border-radius: 8px;
   text-align: center;
 }
+
+canvas {
+  margin-top: 10px;
+  background: #000;
+  border-radius: 10px;
+}
 </style>
 </head>
 
@@ -77,7 +83,7 @@ button {
   <h3>Registrar / Login</h3>
   <input id="name" placeholder="Nome">
   <input id="pass" type="password" placeholder="Senha">
-  <button onclick="login()">Entrar / Registrar</button>
+  <button onclick="login()">Entrar</button>
 </div>
 
 <div class="container hidden" id="game">
@@ -96,12 +102,22 @@ button {
 
   <button onclick="buyPrize()">🎁 Comprar Prêmio (100.000 moedas)</button>
 
+  <hr>
+
+  <h3>🖼 Criador de Imagens</h3>
+  <input id="imgText" placeholder="Descreva a imagem (ex: fogo, gamer, azul)">
+  <button onclick="criarImagem()">Criar Imagem</button>
+  <button onclick="baixarImagem()">Baixar Imagem</button>
+
+  <canvas id="canvas" width="300" height="300"></canvas>
+
 </div>
 
 <script>
 let user = null;
 let coins = 0;
 
+// LOGIN
 function login() {
   const name = document.getElementById("name").value;
   const pass = document.getElementById("pass").value;
@@ -117,6 +133,7 @@ function login() {
   update();
 }
 
+// CHAT
 function send() {
   const text = msg.value.trim();
   if (!text) return;
@@ -139,58 +156,36 @@ function systemMsg(text) {
   chatMsg("AI Prof: " + text, "system");
 }
 
+// RESPOSTAS AUTOMÁTICAS
 function responderSistema(pergunta) {
   pergunta = pergunta.toLowerCase();
-  let resposta = "";
+  let r = "";
 
-  // HORAS
-  if (pergunta.includes("hora")) {
-    resposta = "Agora são " + new Date().toLocaleTimeString("pt-BR") + ".";
-  }
-  // DATA
-  else if (pergunta.includes("dia") || pergunta.includes("data")) {
-    resposta = "Hoje é " + new Date().toLocaleDateString("pt-BR") + ".";
-  }
-  // BRASIL
-  else if (pergunta.includes("capital do brasil")) {
-    resposta = "A capital do Brasil é Brasília.";
-  }
-  else if (pergunta.includes("anos tem o brasil")) {
-    resposta = "O Brasil tem mais de 524 anos de história.";
-  }
-  // SAUDAÇÃO
-  else if (pergunta.includes("oi") || pergunta.includes("olá")) {
-    resposta = "Olá! Como posso te ajudar?";
-  }
-  // MOEDAS
-  else if (pergunta.includes("moeda")) {
-    resposta = "Você ganha 1 moeda por segundo enquanto estiver online.";
-  }
-  // MATEMÁTICA SIMPLES
+  if (pergunta.includes("hora"))
+    r = "Agora são " + new Date().toLocaleTimeString("pt-BR");
+  else if (pergunta.includes("dia") || pergunta.includes("data"))
+    r = "Hoje é " + new Date().toLocaleDateString("pt-BR");
+  else if (pergunta.includes("capital do brasil"))
+    r = "A capital do Brasil é Brasília.";
+  else if (pergunta.includes("brasil"))
+    r = "O Brasil foi descoberto em 1500.";
+  else if (pergunta.includes("oi") || pergunta.includes("olá"))
+    r = "Olá! Como posso ajudar?";
+  else if (pergunta.includes("moeda"))
+    r = "Você ganha 1 moeda por segundo online.";
   else if (/[0-9]/.test(pergunta) && /[\+\-\*\/]/.test(pergunta)) {
     try {
-      resposta = "O resultado é " + eval(pergunta.replace(/[^0-9+\-*/.]/g, ""));
+      r = "Resultado: " + eval(pergunta.replace(/[^0-9+\-*/.]/g, ""));
     } catch {
-      resposta = "Não consegui calcular isso.";
+      r = "Não consegui calcular.";
     }
-  }
-  // PADRÃO (NUNCA FICA MUDO)
-  else {
-    resposta = "Pergunta interessante! Posso responder horas, datas, Brasil, moedas e matemática básica.";
-  }
+  } else
+    r = "Posso responder horas, datas, Brasil, moedas e matemática básica.";
 
-  systemMsg(resposta);
+  systemMsg(r);
 }
 
-function update() {
-  coinsEl = document.getElementById("coins");
-  rankEl = document.getElementById("rank");
-  coinsEl.innerText = coins;
-  rankEl.innerText = Math.max(1, Math.floor(coins / 1000));
-  localStorage.setItem("coins_" + user, coins);
-}
-
-// moedas por segundo
+// MOEDAS
 setInterval(() => {
   if (user) {
     coins++;
@@ -198,14 +193,51 @@ setInterval(() => {
   }
 }, 1000);
 
+function update() {
+  coinsEl.innerText = coins;
+  rankEl.innerText = Math.max(1, Math.floor(coins / 1000));
+  localStorage.setItem("coins_" + user, coins);
+}
+
 function buyPrize() {
   if (coins >= 100000) {
     coins -= 100000;
-    systemMsg("🎉 Prêmio comprado com sucesso!");
+    systemMsg("🎉 Prêmio comprado!");
     update();
   } else {
-    systemMsg("❌ Você não tem moedas suficientes.");
+    systemMsg("❌ Moedas insuficientes.");
   }
+}
+
+// CRIADOR DE IMAGEM
+function criarImagem() {
+  const texto = imgText.value || "AI Prof";
+  const c = canvas;
+  const ctx = c.getContext("2d");
+
+  ctx.fillStyle = `hsl(${Math.random()*360},70%,40%)`;
+  ctx.fillRect(0,0,300,300);
+
+  for (let i=0;i<10;i++) {
+    ctx.beginPath();
+    ctx.arc(Math.random()*300,Math.random()*300,Math.random()*60,0,Math.PI*2);
+    ctx.fillStyle = "rgba(255,255,255,0.2)";
+    ctx.fill();
+  }
+
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 22px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(texto.substring(0,20),150,160);
+
+  systemMsg("Imagem criada 🎨");
+}
+
+function baixarImagem() {
+  const link = document.createElement("a");
+  link.download = "imagem_ai_prof.png";
+  link.href = canvas.toDataURL();
+  link.click();
 }
 </script>
 
