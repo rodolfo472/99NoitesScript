@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>AI Prof - Painel</title>
+</head>
+<body>
+
+<h1>Bem-vindo ao AI Prof</h1>
+
+<p>Usuário: <span id="user"></span></p>
+<p>Moedas: <span id="moedas">0</span></p>
+
+<div>
+    <h3>Chat do AI Prof</h3>
+    <div id="mensagens" style="border:1px solid #000; height:200px; overflow:auto;"></div>
+
+    <button onclick="enviar()">Enviar</button>
+    <input id="texto" placeholder="Digite sua pergunta">
+</div>
+
+<script>
+const usuario = localStorage.getItem("usuarioLogado");
+
+if (!usuario) {
+    alert("Você precisa fazer login");
+    window.location.href = "index.html";
+}
+
+document.getElementById("user").innerText = usuario;
+
+let moedas = 0;
+setInterval(() => {
+    moedas++;
+    document.getElementById("moedas").innerText = moedas;
+}, 1000);
+
+function enviar() {
+    const t = texto.value;
+    if (!t) return;
+
+    mensagens.innerHTML += "<p><b>Você:</b> " + t + "</p>";
+    texto.value = "";
+
+    mensagens.innerHTML += "<p><b>AI Prof:</b> Estou aprendendo a responder 📘</p>";
+}
+</script>
+
+</body>
+</html>
