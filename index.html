@@ -2,207 +2,53 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Aipro Game</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #0f172a;
-        color: #fff;
-        text-align: center;
-    }
-    .menu {
-        background: #1e293b;
-        padding: 15px;
-        margin: 15px auto;
-        width: 320px;
-        border-radius: 10px;
-    }
-    input, button {
-        padding: 8px;
-        margin: 5px;
-    }
-    .msg {
-        color: #22c55e;
-    }
-    .error {
-        color: #ef4444;
-    }
-    #chat {
-        display: none;
-        width: 90%;
-        max-width: 500px;
-        margin: auto;
-    }
-    #mensagens {
-        background: #020617;
-        height: 200px;
-        overflow-y: auto;
-        padding: 10px;
-        border-radius: 10px;
-        text-align: left;
-    }
-    .linha {
-        display: flex;
-        align-items: center;
-        margin-top: 5px;
-    }
-    .linha button {
-        width: 60px;
-    }
-    .linha input[type="text"] {
-        flex: 1;
-    }
-</style>
+<title>AI Prof - Login</title>
 </head>
 <body>
 
-<h1>Aipro Game</h1>
+<h1>AI Prof</h1>
 
-<div class="menu">
-    <h3>Registrar</h3>
-    <input id="regNome" placeholder="Nome"><br>
-    <input id="regSenha" type="password" placeholder="Senha"><br>
-    <button onclick="registrar()">Registrar</button>
-</div>
+<h2>Registrar</h2>
+<input id="regNome" placeholder="Nome"><br>
+<input id="regSenha" type="password" placeholder="Senha"><br>
+<button onclick="registrar()">Registrar</button>
 
-<div class="menu">
-    <h3>Login</h3>
-    <input id="logNome" placeholder="Nome"><br>
-    <input id="logSenha" type="password" placeholder="Senha"><br>
-    <button onclick="login()">Entrar</button>
-</div>
+<h2>Login</h2>
+<input id="logNome" placeholder="Nome"><br>
+<input id="logSenha" type="password" placeholder="Senha"><br>
+<button onclick="login()">Entrar</button>
 
-<p id="mensagem"></p>
-
-<div id="painel" class="menu" style="display:none;">
-    <h3>Painel</h3>
-    Moedas: <span id="moedas">0</span>
-</div>
-
-<!-- CHAT -->
-<div id="chat">
-    <h3>Chat do Jogo</h3>
-
-    <div id="mensagens"></div>
-
-    <div class="linha">
-        <!-- Botão enviar ESQUERDA -->
-        <button onclick="enviarMensagem()">Enviar</button>
-
-        <!-- Campo texto -->
-        <input id="texto" type="text" placeholder="Digite sua mensagem">
-
-        <!-- Foto DIREITA -->
-        <input type="file" id="foto" accept="image/*" onchange="enviarFoto()">
-    </div>
-</div>
+<p id="msg"></p>
 
 <script>
-let moedas = 0;
-let timer = null;
-
 function registrar() {
-    const n = regNome.value;
-    const s = regSenha.value;
+    const nome = regNome.value;
+    const senha = regSenha.value;
 
-    if (localStorage.getItem(n)) {
-        mensagem.innerHTML = "Conta já registrada";
-        mensagem.className = "error";
+    if (localStorage.getItem(nome)) {
+        msg.innerText = "Conta já existe no AI Prof";
         return;
     }
 
-    localStorage.setItem(n, s);
-    mensagem.innerHTML = "Conta registrada com sucesso";
-    mensagem.className = "msg";
+    localStorage.setItem(nome, senha);
+    localStorage.setItem("usuarioLogado", nome);
+
+    window.open("painel.html", "_blank");
 }
 
 function login() {
-    const n = logNome.value;
-    const s = logSenha.value;
+    const nome = logNome.value;
+    const senha = logSenha.value;
 
-    const senha = localStorage.getItem(n);
-
-    if (!senha) {
-        mensagem.innerHTML = "Conta não existe";
-        mensagem.className = "error";
+    if (localStorage.getItem(nome) !== senha) {
+        msg.innerText = "Nome ou senha incorretos";
         return;
     }
 
-    if (s !== senha) {
-        mensagem.innerHTML = "Senha incorreta";
-        mensagem.className = "error";
-        return;
-    }
-
-    mensagem.innerHTML = "Você conseguiu entrar!";
-    mensagem.className = "msg";
-
-    painel.style.display = "block";
-    chat.style.display = "block";
-
-    iniciarMoedas();
-}
-
-function iniciarMoedas() {
-    timer = setInterval(() => {
-        moedas++;
-        document.getElementById("moedas").innerText = moedas;
-    }, 1000);
-}
-
-// CHAT
-function enviarMensagem() {
-    const texto = document.getElementById("texto").value;
-    if (!texto) return;
-
-    adicionarMensagem("Você", texto);
-    document.getElementById("texto").value = "";
-
-    setTimeout(() => responder(texto), 500);
-}
-
-function adicionarMensagem(usuario, msg) {
-    const div = document.createElement("div");
-    div.innerHTML = `<b>${usuario}:</b> ${msg}`;
-    mensagens.appendChild(div);
-    mensagens.scrollTop = mensagens.scrollHeight;
-}
-
-function responder(pergunta) {
-    pergunta = pergunta.toLowerCase();
-    let resposta = "Não entendi sua pergunta.";
-
-    if (pergunta.includes("quantos anos tem o brasil")) {
-        resposta = "O Brasil tem mais de 524 anos (desde 1500).";
-    } 
-    else if (pergunta.includes("capital do brasil")) {
-        resposta = "A capital do Brasil é Brasília.";
-    }
-    else if (pergunta.includes("oi") || pergunta.includes("olá")) {
-        resposta = "Olá! Como posso ajudar?";
-    }
-    else if (pergunta.includes("moedas")) {
-        resposta = "Você ganha 1 moeda por segundo enquanto estiver online.";
-    }
-
-    adicionarMensagem("Sistema", resposta);
-}
-
-function enviarFoto() {
-    const file = foto.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = document.createElement("img");
-        img.src = e.target.result;
-        img.style.maxWidth = "100px";
-        mensagens.appendChild(img);
-        mensagens.scrollTop = mensagens.scrollHeight;
-    }
-    reader.readAsDataURL(file);
+    localStorage.setItem("usuarioLogado", nome);
+    window.open("painel.html", "_blank");
 }
 </script>
 
 </body>
-    </html>
+</html>
