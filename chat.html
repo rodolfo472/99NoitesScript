@@ -6,50 +6,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
-  margin:0;
-  background:#0f172a;
-  color:white;
-  font-family:Arial;
-}
-header {
-  background:#020617;
-  padding:10px;
-  text-align:center;
-}
-.container {
-  padding:10px;
-}
+body { margin:0; background:#0f172a; color:white; font-family:Arial; }
+header { background:#020617; padding:10px; text-align:center; }
+.container { padding:10px; }
 .contact {
   background:#020617;
   padding:10px;
   border-radius:8px;
-  margin-bottom:5px;
+  margin-bottom:6px;
 }
 input, button {
   width:100%;
   padding:10px;
-  margin-top:5px;
+  margin-top:6px;
   border-radius:8px;
   border:none;
 }
-button {
-  background:#22c55e;
-}
+button { background:#22c55e; }
 </style>
 </head>
 
 <body>
 
 <header>
-  👤 <span id="user"></span> | ID: <b><span id="myId"></span></b>
+  👤 <span id="userInfo"></span>
 </header>
 
 <div class="container">
 
 <h3>➕ Adicionar contato</h3>
-<input id="novoId" placeholder="ID do contato (7 dígitos)">
-<button onclick="adicionarContato()">Adicionar</button>
+<input id="novoNumero" placeholder="Número (ex: 829XXXXXXXX)">
+<button onclick="addContato()">Adicionar</button>
 
 <hr>
 
@@ -61,60 +48,57 @@ button {
 </div>
 
 <script>
-// proteção
-if (!localStorage.getItem("usuario_nome")) {
-  location.href = "index.html";
-}
+const meuNumero = localStorage.getItem("usuario_logado");
+if (!meuNumero) location.href = "index.html";
 
-const nome = localStorage.getItem("usuario_nome");
-const genero = localStorage.getItem("usuario_genero");
-const meuId = localStorage.getItem("usuario_id");
+const userData = JSON.parse(localStorage.getItem("user_" + meuNumero));
+userInfo.innerText = `${userData.nome} (${userData.genero}) - ${meuNumero}`;
 
-user.innerText = `${nome} (${genero})`;
-myId.innerText = meuId;
+let contatos = JSON.parse(localStorage.getItem("contatos_" + meuNumero)) || [];
 
-let contatos = JSON.parse(localStorage.getItem("contatos")) || [];
-
-function renderContatos() {
+function render() {
   lista.innerHTML = "";
-  contatos.forEach(id => {
+  contatos.forEach(num => {
+    const data = JSON.parse(localStorage.getItem("user_" + num));
     const div = document.createElement("div");
     div.className = "contact";
-    div.innerText = "Contato ID: " + id;
+    div.innerText = data
+      ? `${data.nome} - ${num}`
+      : `Contato ${num}`;
     lista.appendChild(div);
   });
 }
 
-function adicionarContato() {
-  const id = novoId.value.trim();
+function addContato() {
+  const num = novoNumero.value.trim();
 
-  if (!/^\d{7}$/.test(id)) {
-    alert("ID inválido (7 dígitos)");
+  if (!/^(82|79)9\d{8}$/.test(num)) {
+    alert("Número inválido");
     return;
   }
 
-  if (id === meuId) {
-    alert("Você não pode adicionar seu próprio ID");
+  if (num === meuNumero) {
+    alert("Esse é seu número");
     return;
   }
 
-  if (contatos.includes(id)) {
+  if (contatos.includes(num)) {
     alert("Contato já adicionado");
     return;
   }
 
-  contatos.push(id);
-  localStorage.setItem("contatos", JSON.stringify(contatos));
-  novoId.value = "";
-  renderContatos();
+  contatos.push(num);
+  localStorage.setItem("contatos_" + meuNumero, JSON.stringify(contatos));
+  novoNumero.value = "";
+  render();
 }
 
 function sair() {
-  localStorage.clear();
+  localStorage.removeItem("usuario_logado");
   location.href = "index.html";
 }
 
-renderContatos();
+render();
 </script>
 
 </body>
