@@ -2,254 +2,86 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>AI Prof</title>
+<title>Video Chat</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
   background: #0f172a;
   color: white;
-}
-.hidden { display: none; }
-
-header {
-  background: #020617;
-  padding: 15px;
+  font-family: Arial;
   text-align: center;
-  font-size: 22px;
-  font-weight: bold;
 }
 
-.container {
-  padding: 15px;
-}
-
-input, button {
-  padding: 10px;
-  margin: 5px 0;
-  width: 100%;
-  border-radius: 8px;
-  border: none;
-  font-size: 16px;
+video {
+  width: 45%;
+  border-radius: 12px;
+  background: black;
+  margin: 5px;
 }
 
 button {
+  padding: 10px 15px;
+  margin: 10px;
+  border-radius: 8px;
+  border: none;
   background: #22c55e;
-  cursor: pointer;
-}
-
-#chat {
-  height: 220px;
-  background: #020617;
-  border-radius: 8px;
-  padding: 10px;
-  overflow-y: auto;
-  margin-bottom: 10px;
-}
-
-.msg { margin-bottom: 8px; }
-.user { color: #60a5fa; }
-.system { color: #22c55e; }
-
-.panel {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.panel div {
-  flex: 1;
-  background: #020617;
-  padding: 10px;
-  border-radius: 8px;
-  text-align: center;
-}
-
-canvas {
-  margin-top: 10px;
-  background: #000;
-  border-radius: 10px;
+  font-size: 16px;
 }
 </style>
 </head>
 
 <body>
 
-<header>🎮 AI Prof</header>
+<h2>📞 Video Chat</h2>
 
-<div class="container" id="auth">
-  <h3>Login</h3>
-  <input id="name" placeholder="Nome">
-  <input id="pass" type="password" placeholder="Senha">
-  <button onclick="login()">Entrar</button>
-</div>
+<video id="localVideo" autoplay muted></video>
+<video id="remoteVideo" autoplay></video>
 
-<div class="container hidden" id="game">
+<br>
 
-  <div class="panel">
-    <div>💰 Moedas<br><span id="coinsEl">0</span></div>
-    <div>🏆 Nível<br><span id="rankEl">1</span></div>
-  </div>
-
-  <div id="chat"></div>
-
-  <input id="msg" placeholder="Digite sua mensagem">
-  <button onclick="send()">Enviar</button>
-
-  <hr>
-
-  <h3>🖼 Criador de Imagens (IA)</h3>
-  <input id="imgText" placeholder="Ex: fogo, água, céu, espaço">
-  <button onclick="criarImagem()">Criar Imagem</button>
-  <button onclick="baixarImagem()">Baixar Imagem</button>
-
-  <canvas id="canvas" width="300" height="300"></canvas>
-
-  <hr>
-
-  <button onclick="logout()">🚪 Sair</button>
-</div>
+<button onclick="startCamera()">Ligar Câmera</button>
+<button onclick="startCall()">Iniciar Chamada</button>
 
 <script>
-let user = null;
-let coins = 0;
+let localStream;
+let peerConnection;
 
-// LOGIN
-function login() {
-  const name = document.getElementById("name").value;
-  const pass = document.getElementById("pass").value;
-  if (!name || !pass) return alert("Preencha tudo");
-
-  user = name;
-  localStorage.setItem("usuario_logado", user);
-  coins = Number(localStorage.getItem("coins_" + user)) || 0;
-
-  auth.classList.add("hidden");
-  game.classList.remove("hidden");
-
-  systemMsg("Bem-vindo, " + user + "!");
-  update();
-}
-
-// LOGIN AUTOMÁTICO
-window.onload = () => {
-  const salvo = localStorage.getItem("usuario_logado");
-  if (salvo) {
-    user = salvo;
-    coins = Number(localStorage.getItem("coins_" + user)) || 0;
-    auth.classList.add("hidden");
-    game.classList.remove("hidden");
-    systemMsg("Bem-vindo de volta, " + user + "!");
-    update();
-  }
+const config = {
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
 };
 
-// LOGOUT
-function logout() {
-  localStorage.removeItem("usuario_logado");
-  location.reload();
+async function startCamera() {
+  localStream = await navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: true
+  });
+  localVideo.srcObject = localStream;
 }
 
-// CHAT
-function send() {
-  const text = msg.value.trim();
-  if (!text) return;
-  chatMsg(user + ": " + text, "user");
-  msg.value = "";
-  setTimeout(() => systemMsg("Entendido 👍"), 300);
-}
+function startCall() {
+  peerConnection = new RTCPeerConnection(config);
 
-function chatMsg(text, cls) {
-  const div = document.createElement("div");
-  div.className = "msg " + cls;
-  div.innerText = text;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-}
+  localStream.getTracks().forEach(track => {
+    peerConnection.addTrack(track, localStream);
+  });
 
-function systemMsg(text) {
-  chatMsg("AI Prof: " + text, "system");
-}
+  peerConnection.ontrack = event => {
+    remoteVideo.srcObject = event.streams[0];
+  };
 
-// MOEDAS
-setInterval(() => {
-  if (user) {
-    coins++;
-    update();
-  }
-}, 1000);
-
-function update() {
-  coinsEl.innerText = coins;
-  rankEl.innerText = Math.max(1, Math.floor(coins / 1000));
-  localStorage.setItem("coins_" + user, coins);
-}
-
-// 🎨 CRIADOR DE IMAGEM (IA 3D)
-function criarImagem() {
-  const t = imgText.value.toLowerCase();
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0,0,300,300);
-
-  const grad = ctx.createRadialGradient(150,120,20,150,150,200);
-
-  if (t.includes("fogo")) {
-    grad.addColorStop(0,"#ffcc00");
-    grad.addColorStop(0.4,"#ff3300");
-    grad.addColorStop(1,"#330000");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0,0,300,300);
-    for(let i=0;i<120;i++){
-      ctx.beginPath();
-      ctx.arc(150+(Math.random()-0.5)*120,220-Math.random()*140,10+Math.random()*25,0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,${100+Math.random()*155},0,0.8)`;
-      ctx.fill();
+  peerConnection.onicecandidate = event => {
+    if (event.candidate) {
+      console.log("ICE:", JSON.stringify(event.candidate));
     }
-  } 
-  else if (t.includes("agua") || t.includes("água")) {
-    grad.addColorStop(0,"#66ccff");
-    grad.addColorStop(1,"#001f4d");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0,0,300,300);
-    for(let y=0;y<300;y+=15){
-      ctx.beginPath();
-      ctx.moveTo(0,y);
-      for(let x=0;x<=300;x+=15){
-        ctx.lineTo(x,y+Math.sin(x*0.05+y*0.1)*6);
-      }
-      ctx.strokeStyle="rgba(255,255,255,0.25)";
-      ctx.stroke();
-    }
-  } 
-  else if (t.includes("ceu") || t.includes("céu")) {
-    grad.addColorStop(0,"#aee6ff");
-    grad.addColorStop(1,"#1e90ff");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0,0,300,300);
-    for(let i=0;i<8;i++){
-      ctx.beginPath();
-      ctx.arc(60+i*30,80+Math.sin(i)*10,35,0,Math.PI*2);
-      ctx.fillStyle="rgba(255,255,255,0.95)";
-      ctx.fill();
-    }
-  } 
-  else {
-    grad.addColorStop(0,"hsl("+Math.random()*360+",80%,55%)");
-    grad.addColorStop(1,"hsl("+Math.random()*360+",80%,25%)");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0,0,300,300);
-  }
+  };
 
-  systemMsg("Imagem criada 🎨");
-}
-
-function baixarImagem() {
-  const link = document.createElement("a");
-  link.download = "imagem_ai_prof.png";
-  link.href = canvas.toDataURL();
-  link.click();
+  peerConnection.createOffer()
+    .then(offer => peerConnection.setLocalDescription(offer))
+    .then(() => {
+      console.log("COPIE ESTA OFFER:");
+      console.log(JSON.stringify(peerConnection.localDescription));
+    });
 }
 </script>
 
