@@ -2,45 +2,42 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Login - Chat</title>
+<title>Cadastro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body {
-  font-family: Arial;
-  background: #0f172a;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  background:#0f172a;
+  color:white;
+  font-family:Arial;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
-.box {
-  background: #020617;
-  padding: 20px;
-  border-radius: 10px;
-  width: 300px;
+.card {
+  background:#020617;
+  padding:20px;
+  border-radius:14px;
+  width:300px;
 }
 input, select, button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  border-radius: 8px;
-  border: none;
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  border-radius:8px;
+  border:none;
 }
-button { background: #22c55e; }
+button { background:#22c55e; }
 </style>
 </head>
+
 <body>
 
-<div class="box">
-  <h2>Registrar / Login</h2>
+<div class="card">
+  <h3>👤 Cadastro / Login</h3>
 
   <input id="nome" placeholder="Nome">
-  <select id="estado">
-    <option value="">Estado</option>
-    <option value="82">Alagoas</option>
-    <option value="79">Sergipe</option>
-  </select>
 
   <select id="sexo">
     <option value="">Sexo</option>
@@ -48,41 +45,49 @@ button { background: #22c55e; }
     <option>Feminino</option>
   </select>
 
-  <button onclick="registrar()">Registrar / Entrar</button>
+  <select id="estado">
+    <option value="">Estado</option>
+    <option value="82">Alagoas (82)</option>
+    <option value="79">Sergipe (79)</option>
+  </select>
+
+  <button onclick="registrar()">Entrar</button>
 </div>
 
 <script>
-function gerarNumero(prefixo) {
-  let resto = "";
-  for (let i = 0; i < 9; i++) resto += Math.floor(Math.random()*10);
-  return prefixo + resto;
+function gerarNumero(ddd) {
+  let n = "9";
+  for (let i = 0; i < 8; i++) {
+    n += Math.floor(Math.random() * 10);
+  }
+  return ddd + n;
 }
 
 function registrar() {
-  const nome = nome.value.trim();
-  const estado = document.getElementById("estado").value;
+  const nome = document.getElementById("nome").value.trim();
   const sexo = document.getElementById("sexo").value;
+  const estado = document.getElementById("estado").value;
 
-  if (!nome || !estado || !sexo) {
+  if (!nome || !sexo || !estado) {
     alert("Preencha tudo");
     return;
   }
 
-  let numero = localStorage.getItem("numero_usuario");
-  if (!numero) numero = gerarNumero(estado);
+  let numero = gerarNumero(estado);
 
-  const user = { nome, estado, sexo, numero };
+  const usuario = { nome, sexo, numero };
 
-  localStorage.setItem("usuario", JSON.stringify(user));
-  localStorage.setItem("numero_usuario", numero);
+  localStorage.setItem("usuario", JSON.stringify(usuario));
+  localStorage.setItem("usuario_logado", numero);
+  localStorage.setItem("contatos_" + numero, JSON.stringify([]));
 
-  location.href = "chat.html";
+  // redirecionamento seguro
+  setTimeout(() => {
+    window.location.replace("chat.html");
+  }, 100);
 }
 
-// login automático
-if (localStorage.getItem("usuario")) {
-  location.href = "chat.html";
-}
+// ⚠️ NÃO redireciona automaticamente aqui
 </script>
 
 </body>
