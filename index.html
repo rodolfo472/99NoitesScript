@@ -100,18 +100,16 @@ canvas {
 
   <hr>
 
-  <button onclick="buyPrize()">🎁 Comprar Prêmio (100.000 moedas)</button>
-  <button onclick="logout()">🚪 Sair</button>
-
-  <hr>
-
-  <h3>🖼 Criador de Imagens</h3>
-  <input id="imgText" placeholder="Ex: imagem de fogo">
+  <h3>🖼 Criador de Imagens (IA)</h3>
+  <input id="imgText" placeholder="Ex: fogo, água, céu, espaço">
   <button onclick="criarImagem()">Criar Imagem</button>
   <button onclick="baixarImagem()">Baixar Imagem</button>
 
   <canvas id="canvas" width="300" height="300"></canvas>
 
+  <hr>
+
+  <button onclick="logout()">🚪 Sair</button>
 </div>
 
 <script>
@@ -126,7 +124,6 @@ function login() {
 
   user = name;
   localStorage.setItem("usuario_logado", user);
-
   coins = Number(localStorage.getItem("coins_" + user)) || 0;
 
   auth.classList.add("hidden");
@@ -137,7 +134,7 @@ function login() {
 }
 
 // LOGIN AUTOMÁTICO
-window.onload = function () {
+window.onload = () => {
   const salvo = localStorage.getItem("usuario_logado");
   if (salvo) {
     user = salvo;
@@ -161,7 +158,7 @@ function send() {
   if (!text) return;
   chatMsg(user + ": " + text, "user");
   msg.value = "";
-  setTimeout(() => responderSistema(text), 400);
+  setTimeout(() => systemMsg("Entendido 👍"), 300);
 }
 
 function chatMsg(text, cls) {
@@ -174,23 +171,6 @@ function chatMsg(text, cls) {
 
 function systemMsg(text) {
   chatMsg("AI Prof: " + text, "system");
-}
-
-// RESPOSTAS
-function responderSistema(p) {
-  p = p.toLowerCase();
-  let r = "Posso responder horas, datas, Brasil e matemática.";
-
-  if (p.includes("hora")) r = "Agora são " + new Date().toLocaleTimeString("pt-BR");
-  else if (p.includes("data") || p.includes("dia")) r = "Hoje é " + new Date().toLocaleDateString("pt-BR");
-  else if (p.includes("capital do brasil")) r = "A capital do Brasil é Brasília.";
-  else if (p.includes("brasil")) r = "O Brasil foi descoberto em 1500.";
-  else if (/[0-9]/.test(p) && /[\+\-\*\/]/.test(p)) {
-    try { r = "Resultado: " + eval(p.replace(/[^0-9+\-*/.]/g,"")); }
-    catch { r = "Erro no cálculo."; }
-  }
-
-  systemMsg(r);
 }
 
 // MOEDAS
@@ -207,15 +187,7 @@ function update() {
   localStorage.setItem("coins_" + user, coins);
 }
 
-function buyPrize() {
-  if (coins >= 100000) {
-    coins -= 100000;
-    systemMsg("🎉 Prêmio comprado!");
-    update();
-  } else systemMsg("❌ Moedas insuficientes.");
-}
-
-// CRIADOR DE IMAGEM ESTILO 3D
+// 🎨 CRIADOR DE IMAGEM (IA 3D)
 function criarImagem() {
   const t = imgText.value.toLowerCase();
   const ctx = canvas.getContext("2d");
@@ -263,21 +235,9 @@ function criarImagem() {
       ctx.fill();
     }
   } 
-  else if (t.includes("espaco") || t.includes("espaço")) {
-    grad.addColorStop(0,"#222244");
-    grad.addColorStop(1,"#000000");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0,0,300,300);
-    for(let i=0;i<150;i++){
-      ctx.beginPath();
-      ctx.arc(Math.random()*300,Math.random()*300,Math.random()*2,0,Math.PI*2);
-      ctx.fillStyle="white";
-      ctx.fill();
-    }
-  } 
   else {
-    grad.addColorStop(0,"#444");
-    grad.addColorStop(1,"#111");
+    grad.addColorStop(0,"hsl("+Math.random()*360+",80%,55%)");
+    grad.addColorStop(1,"hsl("+Math.random()*360+",80%,25%)");
     ctx.fillStyle = grad;
     ctx.fillRect(0,0,300,300);
   }
