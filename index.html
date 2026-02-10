@@ -41,7 +41,7 @@ button {
 }
 
 #chat {
-  height: 250px;
+  height: 260px;
   background: #020617;
   border-radius: 8px;
   padding: 10px;
@@ -49,10 +49,7 @@ button {
   margin-bottom: 10px;
 }
 
-.msg {
-  margin-bottom: 8px;
-}
-
+.msg { margin-bottom: 8px; }
 .user { color: #60a5fa; }
 .system { color: #22c55e; }
 
@@ -69,7 +66,6 @@ button {
   border-radius: 8px;
   text-align: center;
 }
-
 </style>
 </head>
 
@@ -88,7 +84,7 @@ button {
 
   <div class="panel">
     <div>💰 Moedas<br><span id="coins">0</span></div>
-    <div>🏆 Ranking<br><span id="rank">1</span></div>
+    <div>🏆 Nível<br><span id="rank">1</span></div>
   </div>
 
   <div id="chat"></div>
@@ -109,28 +105,26 @@ let coins = 0;
 function login() {
   const name = document.getElementById("name").value;
   const pass = document.getElementById("pass").value;
-
-  if (!name || !pass) {
-    alert("Preencha tudo");
-    return;
-  }
+  if (!name || !pass) return alert("Preencha tudo");
 
   user = name;
   coins = Number(localStorage.getItem("coins_" + user)) || 0;
 
-  document.getElementById("auth").classList.add("hidden");
-  document.getElementById("game").classList.remove("hidden");
+  auth.classList.add("hidden");
+  game.classList.remove("hidden");
 
   systemMsg("Bem-vindo, " + user + "!");
   update();
 }
 
 function send() {
-  const msg = document.getElementById("msg").value;
-  if (!msg) return;
+  const text = msg.value.trim();
+  if (!text) return;
 
-  chatMsg(user + ": " + msg, "user");
-  document.getElementById("msg").value = "";
+  chatMsg(user + ": " + text, "user");
+  msg.value = "";
+
+  setTimeout(() => responderSistema(text), 500);
 }
 
 function chatMsg(text, cls) {
@@ -142,16 +136,61 @@ function chatMsg(text, cls) {
 }
 
 function systemMsg(text) {
-  chatMsg("[Sistema] " + text, "system");
+  chatMsg("AI Prof: " + text, "system");
+}
+
+function responderSistema(pergunta) {
+  pergunta = pergunta.toLowerCase();
+  let resposta = "";
+
+  // HORAS
+  if (pergunta.includes("hora")) {
+    resposta = "Agora são " + new Date().toLocaleTimeString("pt-BR") + ".";
+  }
+  // DATA
+  else if (pergunta.includes("dia") || pergunta.includes("data")) {
+    resposta = "Hoje é " + new Date().toLocaleDateString("pt-BR") + ".";
+  }
+  // BRASIL
+  else if (pergunta.includes("capital do brasil")) {
+    resposta = "A capital do Brasil é Brasília.";
+  }
+  else if (pergunta.includes("anos tem o brasil")) {
+    resposta = "O Brasil tem mais de 524 anos de história.";
+  }
+  // SAUDAÇÃO
+  else if (pergunta.includes("oi") || pergunta.includes("olá")) {
+    resposta = "Olá! Como posso te ajudar?";
+  }
+  // MOEDAS
+  else if (pergunta.includes("moeda")) {
+    resposta = "Você ganha 1 moeda por segundo enquanto estiver online.";
+  }
+  // MATEMÁTICA SIMPLES
+  else if (/[0-9]/.test(pergunta) && /[\+\-\*\/]/.test(pergunta)) {
+    try {
+      resposta = "O resultado é " + eval(pergunta.replace(/[^0-9+\-*/.]/g, ""));
+    } catch {
+      resposta = "Não consegui calcular isso.";
+    }
+  }
+  // PADRÃO (NUNCA FICA MUDO)
+  else {
+    resposta = "Pergunta interessante! Posso responder horas, datas, Brasil, moedas e matemática básica.";
+  }
+
+  systemMsg(resposta);
 }
 
 function update() {
-  document.getElementById("coins").innerText = coins;
-  document.getElementById("rank").innerText = Math.max(1, Math.floor(coins / 1000));
+  coinsEl = document.getElementById("coins");
+  rankEl = document.getElementById("rank");
+  coinsEl.innerText = coins;
+  rankEl.innerText = Math.max(1, Math.floor(coins / 1000));
   localStorage.setItem("coins_" + user, coins);
 }
 
-// moedas por tempo online
+// moedas por segundo
 setInterval(() => {
   if (user) {
     coins++;
@@ -162,10 +201,10 @@ setInterval(() => {
 function buyPrize() {
   if (coins >= 100000) {
     coins -= 100000;
-    systemMsg("🎉 Você comprou o prêmio!");
+    systemMsg("🎉 Prêmio comprado com sucesso!");
     update();
   } else {
-    systemMsg("❌ Moedas insuficientes.");
+    systemMsg("❌ Você não tem moedas suficientes.");
   }
 }
 </script>
