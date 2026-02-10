@@ -28,50 +28,75 @@ input, select, button {
   border-radius:8px;
   border:none;
 }
-button {
-  background:#22c55e;
-}
+button { background:#22c55e; }
+small { opacity:0.8; }
 </style>
 </head>
 
 <body>
 
 <div class="card">
-  <h3>👤 Cadastro / Login</h3>
+  <h3>👤 Cadastro</h3>
 
   <input id="nome" placeholder="Nome">
   <input id="senha" type="password" placeholder="Senha">
 
   <select id="genero">
     <option value="">Gênero</option>
-    <option value="Masculino">Masculino</option>
-    <option value="Feminino">Feminino</option>
+    <option>Masculino</option>
+    <option>Feminino</option>
   </select>
 
-  <input id="meuId" placeholder="Seu ID (7 dígitos)" maxlength="7">
+  <select id="estado">
+    <option value="">Estado</option>
+    <option value="82">Alagoas (82)</option>
+    <option value="79">Sergipe (79)</option>
+  </select>
 
-  <button onclick="entrar()">Entrar</button>
+  <small>📱 Seu número será criado automaticamente</small>
+
+  <button onclick="entrar()">Criar conta</button>
 </div>
 
 <script>
+function gerarNumero(ddd) {
+  let numero = "9";
+  for (let i = 0; i < 8; i++) {
+    numero += Math.floor(Math.random() * 10);
+  }
+  return ddd + numero;
+}
+
 function entrar() {
   const nome = nomeInput.value.trim();
   const senha = senhaInput.value.trim();
   const genero = generoSelect.value;
-  const id = meuId.value.trim();
+  const ddd = estadoSelect.value;
 
-  if (!nome || !senha || !genero || !/^\d{7}$/.test(id)) {
-    alert("Preencha tudo corretamente (ID com 7 dígitos)");
+  if (!nome || !senha || !genero || !ddd) {
+    alert("Preencha tudo");
     return;
   }
 
-  localStorage.setItem("usuario_nome", nome);
-  localStorage.setItem("usuario_genero", genero);
-  localStorage.setItem("usuario_id", id);
+  // gera número único
+  let numero;
+  do {
+    numero = gerarNumero(ddd);
+  } while (localStorage.getItem("user_" + numero));
 
-  // cria lista de contatos se não existir
-  if (!localStorage.getItem("contatos")) {
-    localStorage.setItem("contatos", JSON.stringify([]));
+  const userData = {
+    nome,
+    genero,
+    numero
+  };
+
+  // salva usuário
+  localStorage.setItem("usuario_logado", numero);
+  localStorage.setItem("user_" + numero, JSON.stringify(userData));
+
+  // inicializa contatos
+  if (!localStorage.getItem("contatos_" + numero)) {
+    localStorage.setItem("contatos_" + numero, JSON.stringify([]));
   }
 
   location.href = "chat.html";
@@ -80,12 +105,11 @@ function entrar() {
 const nomeInput = document.getElementById("nome");
 const senhaInput = document.getElementById("senha");
 const generoSelect = document.getElementById("genero");
-const meuId = document.getElementById("meuId");
+const estadoSelect = document.getElementById("estado");
 
 // login automático
-if (localStorage.getItem("usuario_nome")) {
-  location.href = "chat.html";
-}
+const logado = localStorage.getItem("usuario_logado");
+if (logado) location.href = "chat.html";
 </script>
 
 </body>
