@@ -2,298 +2,178 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>STEAL BRAINROT TYCOON MONSTRO</title>
+<title>VOIDVERSE</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body{margin:0;overflow:hidden;background:black;font-family:Arial}
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
-/* LOGIN */
-#loginScreen{
-position:fixed;inset:0;background:rgba(0,0,0,0.9);
-display:flex;align-items:center;justify-content:center;
-z-index:999;color:white;
-}
-#loginBox{
-background:#111;padding:20px;border-radius:15px;width:260px;text-align:center
-}
-#loginBox input{
-width:100%;padding:8px;margin:6px 0;border-radius:6px;border:none
-}
-#loginBox button{
-width:100%;padding:8px;margin-top:6px;border:none;border-radius:8px;background:#ffd700;font-weight:bold
+<style>
+body{
+  margin:0;
+  overflow:hidden;
+  background:#0b0e1a;
+  font-family:Arial;
 }
 
 /* HUD */
-#uiBottom{
-position:fixed;bottom:10px;left:50%;transform:translateX(-50%);
-color:white;background:rgba(0,0,0,0.6);
-padding:12px 20px;border-radius:15px;display:flex;gap:20px;z-index:10
+#hud{
+  position:fixed;
+  bottom:12px;
+  left:50%;
+  transform:translateX(-50%);
+  color:white;
+  background:rgba(0,0,0,0.55);
+  padding:10px 22px;
+  border-radius:20px;
+  font-size:20px;
 }
 
-/* Loja */
-#shop{
-position:fixed;top:10px;right:10px;
-background:rgba(0,0,0,0.6);color:white;
-padding:12px;border-radius:12px;z-index:10
-}
-#shop button{
-margin-top:5px;width:100%;padding:6px;border:none;border-radius:8px;background:#ffd700;font-weight:bold
+/* Mobile buttons */
+#mobileControls{
+  position:fixed;
+  bottom:90px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:18px;
 }
 
-/* MOBILE BOTÕES */
 .mobileBtn{
-position:fixed;width:70px;height:70px;
-border-radius:50%;background:#444;color:white;
-font-size:26px;z-index:20;border:none
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  border:none;
+  background:#1e2238;
+  color:white;
+  font-size:26px;
 }
-#btnForward{bottom:130px;left:30px}
-#btnBack{bottom:40px;left:30px}
-#btnShift{bottom:40px;right:30px}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="loginScreen">
-<div id="loginBox">
-<h3>👤 Cadastro</h3>
-<input id="user" placeholder="Usuário">
-<input id="pass" type="password" placeholder="Senha">
-<button onclick="register()">Cadastrar</button>
-<button onclick="login()">Entrar</button>
-<p id="loginMsg"></p>
-</div>
-</div>
+<div id="hud">💰 <span id="money">0</span></div>
 
-<!-- LOJA -->
-<div id="shop">
-🛒 LOJA ⭐<br>
-<button onclick="buySpeed()">⚡ +Velocidade (⭐10)</button>
-<button onclick="buyMoney()">💰 +Dinheiro (⭐15)</button>
+<div id="mobileControls">
+  <button class="mobileBtn" id="btnUp">⬆</button>
+  <button class="mobileBtn" id="btnDown">⬇</button>
 </div>
-
-<!-- HUD -->
-<div id="uiBottom">
-💰 <span id="moneyText">0</span>
-⭐ <span id="starsText">0</span>
-</div>
-
-<!-- MOBILE CONTROLES -->
-<button id="btnForward" class="mobileBtn">⬆</button>
-<button id="btnBack" class="mobileBtn">⬇</button>
-<button id="btnShift" class="mobileBtn">🔒</button>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <script>
+/* ===== SETUP ===== */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0e1a);
 
-/* ===== DETECTAR MOBILE ===== */
-const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
-if(!isMobile){
-btnForward.style.display="none";
-btnBack.style.display="none";
-btnShift.style.display="none";
-}
-
-/* ===== LOGIN ===== */
-let logged=localStorage.getItem("logged")==="true";
-if(logged) loginScreen.style.display="none";
-
-function register(){
-if(!user.value||!pass.value){loginMsg.innerText="Preencha tudo";return;}
-localStorage.setItem("acc_user",user.value);
-localStorage.setItem("acc_pass",pass.value);
-loginMsg.innerText="Conta criada!";
-}
-function login(){
-if(user.value===localStorage.getItem("acc_user") &&
-pass.value===localStorage.getItem("acc_pass")){
-localStorage.setItem("logged","true");
-logged=true;
-loginScreen.style.display="none";
-}else loginMsg.innerText="Erro!";
-}
-
-/* ===== DADOS ===== */
-let beltSpeed=parseFloat(localStorage.getItem("beltSpeed"))||0.12;
-let moneyGain=parseInt(localStorage.getItem("moneyGain"))||25;
-let money=parseInt(localStorage.getItem("money"))||0;
-let stars=parseInt(localStorage.getItem("stars"))||0;
-
-function updateUI(){
-moneyText.innerText=money;
-starsText.innerText=stars;
-}
-updateUI();
-
-function save(){
-localStorage.setItem("money",money);
-localStorage.setItem("stars",stars);
-localStorage.setItem("beltSpeed",beltSpeed);
-localStorage.setItem("moneyGain",moneyGain);
-}
-
-/* ===== CENA ===== */
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x87ceeb);
-
-const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
-const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth,innerHeight);
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
 document.body.appendChild(renderer.domElement);
 
-scene.add(new THREE.AmbientLight(0xffffff,0.7));
-const light=new THREE.DirectionalLight(0xffffff,1);
-light.position.set(5,10,5);
-scene.add(light);
+/* ===== LUZ ===== */
+scene.add(new THREE.AmbientLight(0xffffff,0.6));
+const sun = new THREE.DirectionalLight(0xffffff,1);
+sun.position.set(10,20,10);
+scene.add(sun);
 
-/* CHÃO */
-const floor=new THREE.Mesh(
-new THREE.PlaneGeometry(400,400),
-new THREE.MeshStandardMaterial({color:0x3cb371})
+/* ===== CHÃO ===== */
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(300,300),
+  new THREE.MeshStandardMaterial({color:0x111827})
 );
-floor.rotation.x=-Math.PI/2;
+floor.rotation.x = -Math.PI/2;
 scene.add(floor);
 
-/* BASE */
-const base=new THREE.Mesh(
-new THREE.BoxGeometry(60,1,40),
-new THREE.MeshStandardMaterial({color:0xaaaaaa})
-);
-base.position.set(0,0.5,0);
-scene.add(base);
+/* ===== PLAYER (ROBLOX STYLE) ===== */
+const player = new THREE.Group();
 
-/* ESTEIRA */
-const belt=new THREE.Mesh(
-new THREE.BoxGeometry(50,0.5,5),
-new THREE.MeshStandardMaterial({color:0x333333})
-);
-belt.position.set(0,1,0);
-scene.add(belt);
-
-/* COLETOR */
-const collector=new THREE.Mesh(
-new THREE.BoxGeometry(5,0.5,5),
-new THREE.MeshStandardMaterial({color:0xffff00})
-);
-collector.position.set(-25,1,0);
-scene.add(collector);
-
-/* ===== PERSONAGEM ROBLOX ===== */
-const player=new THREE.Group();
-
-function part(w,h,d,color,x,y,z){
-const m=new THREE.Mesh(
-new THREE.BoxGeometry(w,h,d),
-new THREE.MeshStandardMaterial({color})
-);
-m.position.set(x,y,z);
-return m;
+function part(w,h,d,color,y){
+  const m = new THREE.Mesh(
+    new THREE.BoxGeometry(w,h,d),
+    new THREE.MeshStandardMaterial({color})
+  );
+  m.position.y = y;
+  return m;
 }
 
 player.add(
-part(1.2,1.2,1.2,0xffccaa,0,3.2,0),
-part(1.5,2,1,0x0000ff,0,2,0),
-part(0.6,2,0.6,0x444444,-0.4,1,0),
-part(0.6,2,0.6,0x444444,0.4,1,0),
-part(0.5,1.8,0.5,0xffccaa,-1.1,2.3,0),
-part(0.5,1.8,0.5,0xffccaa,1.1,2.3,0)
+  part(1.3,1.3,1.3,0xffccaa,3.3), // cabeça
+  part(1.6,2.2,1.1,0x3b82f6,2),   // torso
+  part(0.6,2,0.6,0x374151,1),     // perna esq
+  part(0.6,2,0.6,0x374151,1),     // perna dir
 );
+player.children[2].position.x = -0.4;
+player.children[3].position.x =  0.4;
+
 scene.add(player);
+player.position.y = 0;
+
+/* ===== CÂMERA ===== */
+let camAngle = 0;
+camera.position.set(0,5,8);
 
 /* ===== CONTROLES ===== */
-let keys={},forward=false,back=false,shiftLock=false;
-
-document.addEventListener("keydown",e=>{
-keys[e.key.toLowerCase()]=true;
-if(e.key==="q") shiftLock=!shiftLock;
-});
+const keys = {};
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
 document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 
-btnForward.onmousedown=()=>forward=true;
-btnForward.onmouseup=()=>forward=false;
-btnBack.onmousedown=()=>back=true;
-btnBack.onmouseup=()=>back=false;
-btnShift.onclick=()=>shiftLock=!shiftLock;
+let up=false, down=false;
+btnUp.ontouchstart=()=>up=true;
+btnUp.ontouchend=()=>up=false;
+btnDown.ontouchstart=()=>down=true;
+btnDown.ontouchend=()=>down=false;
 
-/* ===== CAMERA ===== */
-let camAngle=0;
-document.addEventListener("mousemove",e=>{
-if(e.buttons===1) camAngle+=e.movementX*0.003;
-});
+/* ===== ITENS ===== */
+let money = 0;
+const moneyUI = document.getElementById("money");
+const items = [];
 
-/* ===== SPAWN NA ESTEIRA ===== */
-let brainrots=[];
-setInterval(()=>{
-const b=new THREE.Mesh(
-new THREE.SphereGeometry(1,32,32),
-new THREE.MeshStandardMaterial({color:Math.random()*0xffffff})
-);
-b.position.set(25,2,0);
-scene.add(b);
-brainrots.push(b);
-},2000);
-
-/* ===== LOJA ===== */
-function buySpeed(){
-if(stars>=10){stars-=10;beltSpeed+=0.03;save();updateUI();}
+function spawnItem(){
+  const item = new THREE.Mesh(
+    new THREE.OctahedronGeometry(0.8),
+    new THREE.MeshStandardMaterial({color:0x22c55e})
+  );
+  item.position.set(
+    Math.random()*80-40,
+    0.8,
+    Math.random()*80-40
+  );
+  scene.add(item);
+  items.push(item);
 }
-function buyMoney(){
-if(stars>=15){stars-=15;moneyGain+=10;save();updateUI();}
-}
+setInterval(spawnItem,1500);
 
 /* ===== LOOP ===== */
 function animate(){
-requestAnimationFrame(animate);
+  requestAnimationFrame(animate);
 
-let speed=keys.shift?0.5:0.25;
+  let speed = 0.22;
 
-/* MOVIMENTO */
-if(isMobile){
-if(forward) player.position.z-=speed;
-if(back) player.position.z+=speed;
-}else{
-if(keys.w) player.position.z-=speed;
-if(keys.s) player.position.z+=speed;
-if(keys.a) player.position.x-=speed;
-if(keys.d) player.position.x+=speed;
-}
+  if(keys.w || up) player.position.z -= speed;
+  if(keys.s || down) player.position.z += speed;
+  if(keys.a) player.position.x -= speed;
+  if(keys.d) player.position.x += speed;
 
-/* SHIFT LOCK */
-if(shiftLock){
-player.rotation.y=camAngle;
-camera.position.x=player.position.x+Math.sin(camAngle)*4;
-camera.position.z=player.position.z+Math.cos(camAngle)*4;
-}else{
-camera.position.x=player.position.x+Math.sin(camAngle)*8;
-camera.position.z=player.position.z+Math.cos(camAngle)*8;
-}
-camera.position.y=player.position.y+5;
-camera.lookAt(player.position);
+  // câmera
+  camera.position.x = player.position.x;
+  camera.position.z = player.position.z + 8;
+  camera.lookAt(player.position);
 
-/* ESTEIRA */
-brainrots.forEach((b,i)=>{
-b.position.x-=beltSpeed;
-b.rotation.y+=0.05;
-if(b.position.x<-25){
-if(logged){
-money+=moneyGain;
-stars+=1;
-save();updateUI();
-}
-scene.remove(b);
-brainrots.splice(i,1);
-}
-});
+  // coleta
+  items.forEach((it,i)=>{
+    if(player.position.distanceTo(it.position)<1.5){
+      scene.remove(it);
+      items.splice(i,1);
+      money += 10;
+      moneyUI.innerText = money;
+    }
+  });
 
-renderer.render(scene,camera);
+  renderer.render(scene,camera);
 }
 animate();
 
 window.addEventListener("resize",()=>{
-camera.aspect=innerWidth/innerHeight;
-camera.updateProjectionMatrix();
-renderer.setSize(innerWidth,innerHeight);
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
 });
 </script>
 </body>
