@@ -2,115 +2,160 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Mundo em 1 Página</title>
+<title>Mini Rede Social</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
   margin:0;
-  font-family:Arial, Helvetica, sans-serif;
+  font-family:Arial;
   background:#0f172a;
-  color:#e2e8f0;
-  line-height:1.7;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
 
-header{
-  text-align:center;
-  padding:60px 20px 30px 20px;
+.box{
+  background:#111827;
+  padding:25px;
+  border-radius:12px;
+  width:350px;
 }
 
-h1{
-  font-size:40px;
-  margin:0;
-}
-
-.subtitle{
-  color:#94a3b8;
+input, textarea, select, button{
+  width:100%;
+  padding:10px;
   margin-top:10px;
+  border-radius:8px;
+  border:none;
 }
 
-section{
-  max-width:800px;
-  margin:auto;
-  padding:40px 20px;
+button{
+  background:#2563eb;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-.block{
-  margin-bottom:50px;
-}
+.hidden{ display:none }
 
-h2{
-  color:#38bdf8;
-  margin-bottom:10px;
-}
-
-footer{
-  text-align:center;
-  padding:40px 20px;
-  font-size:14px;
-  color:#64748b;
+.post{
+  background:#1f2937;
+  padding:10px;
+  margin-top:10px;
+  border-radius:8px;
 }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>🌍 Mundo em 1 Página</h1>
-  <p class="subtitle">Uma explicação simples sobre como tudo funciona</p>
-</header>
+<div class="box">
 
-<section>
+<!-- REGISTRO -->
+<div id="registerPage">
+  <h2>📧 Registro</h2>
+  <input type="email" id="email" placeholder="Digite seu e-mail">
+  <button onclick="register()">Registrar</button>
+  <p id="registerMsg"></p>
+</div>
 
-  <div class="block">
-    <h2>🌎 Como a sociedade funciona</h2>
-    <p>
-      A sociedade funciona porque pessoas cooperam. Cada pessoa faz algo:
-      algumas produzem comida, outras constroem casas, outras ensinam,
-      outras criam tecnologia. Essa troca constante mantém o sistema vivo.
-    </p>
-  </div>
+<!-- ESCOLHER SEXO -->
+<div id="genderPage" class="hidden">
+  <h2>Escolha seu gênero</h2>
+  <select id="gender">
+    <option value="Masculino">Masculino</option>
+    <option value="Feminino">Feminino</option>
+    <option value="Outro">Outro</option>
+  </select>
+  <button onclick="saveGender()">Continuar</button>
+</div>
 
-  <div class="block">
-    <h2>💰 O que é dinheiro</h2>
-    <p>
-      Dinheiro é uma forma de confiança. Ele representa valor.
-      Quando você trabalha, recebe dinheiro.
-      Quando paga algo, está trocando valor por algo que precisa.
-    </p>
-  </div>
+<!-- POSTAGEM -->
+<div id="postPage" class="hidden">
+  <h2>Faça uma postagem</h2>
+  <textarea id="postText" placeholder="Escreva o que quiser..."></textarea>
+  <button onclick="addPost()">Postar</button>
+  <div id="posts"></div>
+</div>
 
-  <div class="block">
-    <h2>🧠 Como o cérebro decide</h2>
-    <p>
-      Nosso cérebro toma decisões baseado em emoções e experiências.
-      Nem sempre somos totalmente racionais.
-      Muitas escolhas são feitas rapidamente, sem perceber.
-    </p>
-  </div>
+</div>
 
-  <div class="block">
-    <h2>📱 A internet mudou tudo</h2>
-    <p>
-      A internet conectou bilhões de pessoas.
-      Informação se espalha em segundos.
-      Hoje qualquer pessoa pode aprender quase qualquer coisa.
-    </p>
-  </div>
+<script>
 
-  <div class="block">
-    <h2>🚀 Para onde estamos indo</h2>
-    <p>
-      Estamos entrando em uma era de automação, inteligência artificial
-      e conexão global. Quem aprende a pensar, adaptar e criar
-      terá mais oportunidades no futuro.
-    </p>
-  </div>
+function register(){
+  const email = document.getElementById("email").value;
+  const msg = document.getElementById("registerMsg");
 
-</section>
+  if(!email){
+    msg.innerText="Digite um e-mail válido!";
+    return;
+  }
 
-<footer>
-  Feito para reflexão • 2026
-</footer>
+  if(localStorage.getItem("userEmail")){
+    msg.innerText="⚠ Você já está registrado!";
+    return;
+  }
+
+  localStorage.setItem("userEmail", email);
+  document.getElementById("registerPage").classList.add("hidden");
+  document.getElementById("genderPage").classList.remove("hidden");
+}
+
+function saveGender(){
+  const gender = document.getElementById("gender").value;
+  localStorage.setItem("userGender", gender);
+
+  document.getElementById("genderPage").classList.add("hidden");
+  document.getElementById("postPage").classList.remove("hidden");
+
+  loadPosts();
+}
+
+function addPost(){
+  const text = document.getElementById("postText").value;
+  if(!text) return;
+
+  let posts = JSON.parse(localStorage.getItem("posts")) || [];
+
+  posts.push({
+    email: localStorage.getItem("userEmail"),
+    gender: localStorage.getItem("userGender"),
+    text: text
+  });
+
+  localStorage.setItem("posts", JSON.stringify(posts));
+  document.getElementById("postText").value="";
+  loadPosts();
+}
+
+function loadPosts(){
+  const postsDiv = document.getElementById("posts");
+  postsDiv.innerHTML="";
+
+  let posts = JSON.parse(localStorage.getItem("posts")) || [];
+
+  posts.forEach(post=>{
+    const div = document.createElement("div");
+    div.className="post";
+    div.innerHTML = `
+      <strong>${post.email}</strong><br>
+      <small>${post.gender}</small><br>
+      ${post.text}
+    `;
+    postsDiv.appendChild(div);
+  });
+}
+
+// Se já estiver registrado, ir direto para posts
+if(localStorage.getItem("userEmail")){
+  document.getElementById("registerPage").classList.add("hidden");
+  document.getElementById("postPage").classList.remove("hidden");
+  loadPosts();
+}
+
+</script>
 
 </body>
 </html>
