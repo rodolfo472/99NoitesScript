@@ -2,179 +2,115 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>VOIDVERSE</title>
+<title>Mundo em 1 Página</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
 <style>
 body{
   margin:0;
-  overflow:hidden;
-  background:#0b0e1a;
-  font-family:Arial;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#0f172a;
+  color:#e2e8f0;
+  line-height:1.7;
 }
 
-/* HUD */
-#hud{
-  position:fixed;
-  bottom:12px;
-  left:50%;
-  transform:translateX(-50%);
-  color:white;
-  background:rgba(0,0,0,0.55);
-  padding:10px 22px;
-  border-radius:20px;
-  font-size:20px;
+header{
+  text-align:center;
+  padding:60px 20px 30px 20px;
 }
 
-/* Mobile buttons */
-#mobileControls{
-  position:fixed;
-  bottom:90px;
-  left:50%;
-  transform:translateX(-50%);
-  display:flex;
-  gap:18px;
+h1{
+  font-size:40px;
+  margin:0;
 }
 
-.mobileBtn{
-  width:70px;
-  height:70px;
-  border-radius:50%;
-  border:none;
-  background:#1e2238;
-  color:white;
-  font-size:26px;
+.subtitle{
+  color:#94a3b8;
+  margin-top:10px;
+}
+
+section{
+  max-width:800px;
+  margin:auto;
+  padding:40px 20px;
+}
+
+.block{
+  margin-bottom:50px;
+}
+
+h2{
+  color:#38bdf8;
+  margin-bottom:10px;
+}
+
+footer{
+  text-align:center;
+  padding:40px 20px;
+  font-size:14px;
+  color:#64748b;
 }
 </style>
 </head>
 <body>
 
-<div id="hud">💰 <span id="money">0</span></div>
+<header>
+  <h1>🌍 Mundo em 1 Página</h1>
+  <p class="subtitle">Uma explicação simples sobre como tudo funciona</p>
+</header>
 
-<div id="mobileControls">
-  <button class="mobileBtn" id="btnUp">⬆</button>
-  <button class="mobileBtn" id="btnDown">⬇</button>
-</div>
+<section>
 
-<script>
-/* ===== SETUP ===== */
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0b0e1a);
+  <div class="block">
+    <h2>🌎 Como a sociedade funciona</h2>
+    <p>
+      A sociedade funciona porque pessoas cooperam. Cada pessoa faz algo:
+      algumas produzem comida, outras constroem casas, outras ensinam,
+      outras criam tecnologia. Essa troca constante mantém o sistema vivo.
+    </p>
+  </div>
 
-const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth, innerHeight);
-document.body.appendChild(renderer.domElement);
+  <div class="block">
+    <h2>💰 O que é dinheiro</h2>
+    <p>
+      Dinheiro é uma forma de confiança. Ele representa valor.
+      Quando você trabalha, recebe dinheiro.
+      Quando paga algo, está trocando valor por algo que precisa.
+    </p>
+  </div>
 
-/* ===== LUZ ===== */
-scene.add(new THREE.AmbientLight(0xffffff,0.6));
-const sun = new THREE.DirectionalLight(0xffffff,1);
-sun.position.set(10,20,10);
-scene.add(sun);
+  <div class="block">
+    <h2>🧠 Como o cérebro decide</h2>
+    <p>
+      Nosso cérebro toma decisões baseado em emoções e experiências.
+      Nem sempre somos totalmente racionais.
+      Muitas escolhas são feitas rapidamente, sem perceber.
+    </p>
+  </div>
 
-/* ===== CHÃO ===== */
-const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(300,300),
-  new THREE.MeshStandardMaterial({color:0x111827})
-);
-floor.rotation.x = -Math.PI/2;
-scene.add(floor);
+  <div class="block">
+    <h2>📱 A internet mudou tudo</h2>
+    <p>
+      A internet conectou bilhões de pessoas.
+      Informação se espalha em segundos.
+      Hoje qualquer pessoa pode aprender quase qualquer coisa.
+    </p>
+  </div>
 
-/* ===== PLAYER (ROBLOX STYLE) ===== */
-const player = new THREE.Group();
+  <div class="block">
+    <h2>🚀 Para onde estamos indo</h2>
+    <p>
+      Estamos entrando em uma era de automação, inteligência artificial
+      e conexão global. Quem aprende a pensar, adaptar e criar
+      terá mais oportunidades no futuro.
+    </p>
+  </div>
 
-function part(w,h,d,color,y){
-  const m = new THREE.Mesh(
-    new THREE.BoxGeometry(w,h,d),
-    new THREE.MeshStandardMaterial({color})
-  );
-  m.position.y = y;
-  return m;
-}
+</section>
 
-player.add(
-  part(1.3,1.3,1.3,0xffccaa,3.3), // cabeça
-  part(1.6,2.2,1.1,0x3b82f6,2),   // torso
-  part(0.6,2,0.6,0x374151,1),     // perna esq
-  part(0.6,2,0.6,0x374151,1),     // perna dir
-);
-player.children[2].position.x = -0.4;
-player.children[3].position.x =  0.4;
+<footer>
+  Feito para reflexão • 2026
+</footer>
 
-scene.add(player);
-player.position.y = 0;
-
-/* ===== CÂMERA ===== */
-let camAngle = 0;
-camera.position.set(0,5,8);
-
-/* ===== CONTROLES ===== */
-const keys = {};
-document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
-
-let up=false, down=false;
-btnUp.ontouchstart=()=>up=true;
-btnUp.ontouchend=()=>up=false;
-btnDown.ontouchstart=()=>down=true;
-btnDown.ontouchend=()=>down=false;
-
-/* ===== ITENS ===== */
-let money = 0;
-const moneyUI = document.getElementById("money");
-const items = [];
-
-function spawnItem(){
-  const item = new THREE.Mesh(
-    new THREE.OctahedronGeometry(0.8),
-    new THREE.MeshStandardMaterial({color:0x22c55e})
-  );
-  item.position.set(
-    Math.random()*80-40,
-    0.8,
-    Math.random()*80-40
-  );
-  scene.add(item);
-  items.push(item);
-}
-setInterval(spawnItem,1500);
-
-/* ===== LOOP ===== */
-function animate(){
-  requestAnimationFrame(animate);
-
-  let speed = 0.22;
-
-  if(keys.w || up) player.position.z -= speed;
-  if(keys.s || down) player.position.z += speed;
-  if(keys.a) player.position.x -= speed;
-  if(keys.d) player.position.x += speed;
-
-  // câmera
-  camera.position.x = player.position.x;
-  camera.position.z = player.position.z + 8;
-  camera.lookAt(player.position);
-
-  // coleta
-  items.forEach((it,i)=>{
-    if(player.position.distanceTo(it.position)<1.5){
-      scene.remove(it);
-      items.splice(i,1);
-      money += 10;
-      moneyUI.innerText = money;
-    }
-  });
-
-  renderer.render(scene,camera);
-}
-animate();
-
-window.addEventListener("resize",()=>{
-  camera.aspect = innerWidth/innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);
-});
-</script>
 </body>
 </html>
