@@ -2,232 +2,119 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Geometry Lite</title>
-
+<title>Steal Brainrot 3D</title>
 <style>
-body{margin:0;background:black;overflow:hidden;font-family:Arial;}
-canvas{display:block;}
+body { margin:0; overflow:hidden; background:black; }
 #ui{
-position:absolute;top:10px;left:10px;
-color:#0ff;font-size:18px;
-text-shadow:0 0 10px cyan;z-index:10;
-}
-#start{
-position:absolute;top:50%;left:50%;
-transform:translate(-50%,-50%);
-background:#0ff;color:black;
-padding:20px 30px;font-size:22px;
-border-radius:10px;
-box-shadow:0 0 25px cyan;
-text-align:center;z-index:10;
-white-space:pre-line;
+  position:fixed;
+  top:10px;
+  left:10px;
+  color:white;
+  font-family:Arial;
+  font-size:20px;
 }
 </style>
 </head>
 <body>
 
 <div id="ui">
-Progresso: <span id="progress">0</span>%<br>
-Recorde: <span id="best">0</span>%<br>
-Tentativas: <span id="tries">0</span>
+💰 Pontos: <span id="score">0</span>
+<br>
+Pressione E para roubar
 </div>
 
-<div id="start" onclick="startGame()">▶ TOCAR PARA COMEÇAR</div>
-
-<canvas id="game"></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <script>
-/* ================= CANVAS ================= */
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
-canvas.width=innerWidth;
-canvas.height=innerHeight;
 
-/* ================= STORAGE ================= */
-let bestProgress = Number(localStorage.getItem("bestProgress")) || 0;
-let tries = Number(localStorage.getItem("tries")) || 0;
+// Cena
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
 
-document.getElementById("best").innerText = bestProgress;
-document.getElementById("tries").innerText = tries;
+// Câmera
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(0,2,5);
 
-/* ================= SOM ================= */
-const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+// Render
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-function sound(type,f1,f2,t){
-  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-  o.type=type;o.frequency.value=f1;g.gain.value=0.25;
-  o.connect(g);g.connect(audioCtx.destination);
-  o.start();
-  o.frequency.exponentialRampToValueAtTime(f2,audioCtx.currentTime+t);
-  o.stop(audioCtx.currentTime+t);
-}
-const playJumpSound=()=>sound("square",600,200,0.1);
-const playDeathSound=()=>sound("sawtooth",200,50,0.4);
-const playPortalSound=()=>sound("triangle",300,800,0.2);
+// Luz
+const light = new THREE.DirectionalLight(0xffffff,1);
+light.position.set(5,10,5);
+scene.add(light);
 
-/* ================= VARIÁVEIS ================= */
-let ground,player,obstacles,portals;
-let speed,distance,gravity;
-let playing=false,hue=0;
+// Chão
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(100,100),
+  new THREE.MeshStandardMaterial({color:0x228B22})
+);
+floor.rotation.x = -Math.PI/2;
+scene.add(floor);
 
-/* ================= RESET ================= */
-function reset(){
-  ground=canvas.height-120;
-  gravity=1;
-  speed=7;
-  distance=0;
-  player={x:120,y:ground,size:35,vy:0,onGround:true};
-  obstacles=[];
-  portals=[];
-  playing=true;
-}
+// Jogador
+const player = new THREE.Mesh(
+  new THREE.BoxGeometry(1,2,1),
+  new THREE.MeshStandardMaterial({color:0x0000ff})
+);
+player.position.y = 1;
+scene.add(player);
 
-/* ================= START ================= */
-function startGame(){
-  document.getElementById("start").style.display="none";
-  tries++;
-  localStorage.setItem("tries",tries);
-  document.getElementById("tries").innerText=tries;
-  reset();
-  loop();
-}
+// Brainrot NPC
+const brainrot = new THREE.Mesh(
+  new THREE.SphereGeometry(1,32,32),
+  new THREE.MeshStandardMaterial({color:0xff0000})
+);
+brainrot.position.set(5,1,0);
+scene.add(brainrot);
 
-/* ================= CONTROLE ================= */
-function jump(){
-  if(player.onGround){
-    playJumpSound();
-    player.vy=-18*gravity;
-    player.onGround=false;
-  }
-}
-addEventListener("click",jump);
-addEventListener("keydown",e=>{if(e.code==="Space")jump();});
+let score = 0;
 
-/* ================= SPAWN ================= */
-function spawnObstacle(){
-  obstacles.push({
-    x:canvas.width,
-    y:ground,
-    size:40,
-    type:Math.random()>0.5?"block":"spike",
-    pulse:0
-  });
-}
-function spawnPortal(){
-  portals.push({x:canvas.width,y:ground-70,w:30,h:90});
+// Controles
+let keys = {};
+document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+
+// Movimento
+function movePlayer(){
+  if(keys["w"]) player.position.z -= 0.1;
+  if(keys["s"]) player.position.z += 0.1;
+  if(keys["a"]) player.position.x -= 0.1;
+  if(keys["d"]) player.position.x += 0.1;
 }
 
-/* ================= LOOP ================= */
-function loop(){
-  if(!playing) return;
-  requestAnimationFrame(loop);
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  hue+=0.5;
-  document.body.style.background=`hsl(${hue},50%,5%)`;
-
-  ctx.fillStyle="#111";
-  ctx.fillRect(0,ground+player.size,canvas.width,5);
-
-  player.vy+=gravity;
-  player.y+=player.vy;
-
-  if(gravity===1&&player.y>=ground){
-    player.y=ground;player.vy=0;player.onGround=true;
-  }
-  if(gravity===-1&&player.y<=80){
-    player.y=80;player.vy=0;player.onGround=true;
-  }
-
-  ctx.save();
-  ctx.translate(player.x+player.size/2,player.y+player.size/2);
-  ctx.rotate(distance/50);
-  ctx.fillStyle="#0ff";
-  ctx.shadowColor="#0ff";
-  ctx.shadowBlur=20;
-  ctx.fillRect(-player.size/2,-player.size/2,player.size,player.size);
-  ctx.restore();
-
-  obstacles.forEach((o,i)=>{
-    o.x-=speed;o.pulse+=0.1;
-    let glow=Math.sin(o.pulse)*5+15;
-    ctx.save();
-    ctx.translate(o.x+o.size/2,o.y+o.size/2);
-    if(o.type==="block"){
-      ctx.shadowColor="#ff00ff";ctx.shadowBlur=glow;
-      ctx.fillStyle="#ff00ff";
-      ctx.fillRect(-o.size/2,-o.size/2,o.size,o.size);
-      ctx.strokeStyle="#fff";ctx.lineWidth=3;
-      ctx.strokeRect(-o.size/2,-o.size/2,o.size,o.size);
-    }else{
-      ctx.shadowColor="#ff0000";ctx.shadowBlur=glow;
-      ctx.fillStyle="#ff0000";
-      ctx.beginPath();
-      ctx.moveTo(0,-o.size/2);
-      ctx.lineTo(o.size/2,o.size/2);
-      ctx.lineTo(-o.size/2,o.size/2);
-      ctx.closePath();ctx.fill();
+// Roubar
+document.addEventListener("keydown", function(e){
+  if(e.key.toLowerCase() === "e"){
+    const distance = player.position.distanceTo(brainrot.position);
+    if(distance < 2){
+      score += 10;
+      document.getElementById("score").innerText = score;
+      
+      // Teleporta brainrot
+      brainrot.position.set(
+        Math.random()*20-10,
+        1,
+        Math.random()*20-10
+      );
     }
-    ctx.restore();
-
-    if(collide(o)) gameOver();
-    if(o.x+o.size<0) obstacles.splice(i,1);
-  });
-
-  portals.forEach((p,i)=>{
-    p.x-=speed;
-    ctx.shadowColor="purple";ctx.shadowBlur=20;
-    ctx.fillStyle="purple";
-    ctx.fillRect(p.x,p.y,p.w,p.h);
-    if(collide(p)){
-      gravity*=-1;
-      playPortalSound();
-      portals.splice(i,1);
-    }
-  });
-
-  ctx.shadowBlur=0;
-
-  if(Math.random()<0.02) spawnObstacle();
-  if(Math.random()<0.005) spawnPortal();
-
-  speed+=0.002;
-  distance+=speed;
-
-  let progress=Math.min(100,Math.floor(distance/80));
-  document.getElementById("progress").innerText=progress;
-
-  if(progress>bestProgress){
-    bestProgress=progress;
-    localStorage.setItem("bestProgress",bestProgress);
-    document.getElementById("best").innerText=bestProgress;
   }
-}
-
-/* ================= COLISÃO ================= */
-function collide(o){
-  return player.x<o.x+(o.w||o.size)&&
-         player.x+player.size>o.x&&
-         player.y<o.y+(o.h||o.size)&&
-         player.y+player.size>o.y;
-}
-
-/* ================= GAME OVER ================= */
-function gameOver(){
-  playing=false;
-  playDeathSound();
-  document.getElementById("start").innerText=
-  "💀 GAME OVER\nToque para tentar novamente";
-  document.getElementById("start").style.display="block";
-}
-
-/* ================= RESIZE ================= */
-addEventListener("resize",()=>{
-  canvas.width=innerWidth;
-  canvas.height=innerHeight;
 });
-</script>
 
+// Animação
+function animate(){
+  requestAnimationFrame(animate);
+  
+  movePlayer();
+  
+  // Brainrot girando
+  brainrot.rotation.y += 0.03;
+  
+  renderer.render(scene, camera);
+}
+animate();
+
+</script>
 </body>
 </html>
