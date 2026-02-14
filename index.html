@@ -2,92 +2,67 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>STEAL BRAINROT TYCOON ULTRA</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>STEAL BRAINROT TYCOON MONSTRO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{margin:0;overflow:hidden;background:black;font-family:Arial}
 
 /* LOGIN */
 #loginScreen{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.85);
-display:flex;
-align-items:center;
-justify-content:center;
-z-index:999;
-color:white;
+position:fixed;inset:0;background:rgba(0,0,0,0.9);
+display:flex;align-items:center;justify-content:center;
+z-index:999;color:white;
 }
-
 #loginBox{
-background:#111;
-padding:20px;
-border-radius:15px;
-width:280px;
-text-align:center;
+background:#111;padding:20px;border-radius:15px;width:260px;text-align:center
 }
-
 #loginBox input{
-width:100%;
-padding:8px;
-margin:6px 0;
-border-radius:6px;
-border:none;
+width:100%;padding:8px;margin:6px 0;border-radius:6px;border:none
 }
-
 #loginBox button{
-width:100%;
-padding:8px;
-margin-top:6px;
-border:none;
-border-radius:8px;
-background:#ffd700;
-font-weight:bold;
+width:100%;padding:8px;margin-top:6px;border:none;border-radius:8px;background:#ffd700;font-weight:bold
 }
 
 /* HUD */
 #uiBottom{
-position:fixed;
-bottom:10px;
-left:50%;
-transform:translateX(-50%);
-color:white;
-background:rgba(0,0,0,0.6);
-padding:12px 20px;
-border-radius:15px;
-display:flex;
-gap:20px;
-z-index:10;
-font-size:16px;
+position:fixed;bottom:10px;left:50%;transform:translateX(-50%);
+color:white;background:rgba(0,0,0,0.6);
+padding:12px 20px;border-radius:15px;display:flex;gap:20px;z-index:10
 }
 
 /* Loja */
 #shop{
-position:fixed;
-top:10px;
-right:10px;
-background:rgba(0,0,0,0.6);
-color:white;
-padding:12px;
-border-radius:12px;
-z-index:10;
+position:fixed;top:10px;right:10px;
+background:rgba(0,0,0,0.6);color:white;
+padding:12px;border-radius:12px;z-index:10
+}
+#shop button{
+margin-top:5px;width:100%;padding:6px;border:none;border-radius:8px;background:#ffd700;font-weight:bold
 }
 
-button{cursor:pointer}
+/* MOBILE BOTÕES */
+.mobileBtn{
+position:fixed;width:70px;height:70px;
+border-radius:50%;background:#444;color:white;
+font-size:26px;z-index:20;border:none
+}
+#btnForward{bottom:130px;left:30px}
+#btnBack{bottom:40px;left:30px}
+#btnShift{bottom:40px;right:30px}
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="loginScreen">
-  <div id="loginBox">
-    <h3>👤 Cadastro</h3>
-    <input id="user" placeholder="Usuário">
-    <input id="pass" type="password" placeholder="Senha">
-    <button onclick="register()">Cadastrar</button>
-    <button onclick="login()">Entrar</button>
-    <p id="loginMsg"></p>
-  </div>
+<div id="loginBox">
+<h3>👤 Cadastro</h3>
+<input id="user" placeholder="Usuário">
+<input id="pass" type="password" placeholder="Senha">
+<button onclick="register()">Cadastrar</button>
+<button onclick="login()">Entrar</button>
+<p id="loginMsg"></p>
+</div>
 </div>
 
 <!-- LOJA -->
@@ -99,46 +74,55 @@ button{cursor:pointer}
 
 <!-- HUD -->
 <div id="uiBottom">
-💰 <span id="money">0</span>
-⭐ <span id="stars">0</span>
+💰 <span id="moneyText">0</span>
+⭐ <span id="starsText">0</span>
 </div>
+
+<!-- MOBILE CONTROLES -->
+<button id="btnForward" class="mobileBtn">⬆</button>
+<button id="btnBack" class="mobileBtn">⬇</button>
+<button id="btnShift" class="mobileBtn">🔒</button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <script>
-/* ================= LOGIN ================= */
-let logged = localStorage.getItem("logged") === "true";
 
-function register(){
-  const u=user.value, p=pass.value;
-  if(!u||!p){loginMsg.innerText="Preencha tudo";return;}
-  localStorage.setItem("acc_user",u);
-  localStorage.setItem("acc_pass",p);
-  loginMsg.innerText="Conta criada! Agora entra.";
+/* ===== DETECTAR MOBILE ===== */
+const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
+if(!isMobile){
+btnForward.style.display="none";
+btnBack.style.display="none";
+btnShift.style.display="none";
 }
 
-function login(){
-  if(user.value===localStorage.getItem("acc_user") &&
-     pass.value===localStorage.getItem("acc_pass")){
-    localStorage.setItem("logged","true");
-    logged=true;
-    loginScreen.style.display="none";
-  }else{
-    loginMsg.innerText="Usuário ou senha errados";
-  }
-}
-
+/* ===== LOGIN ===== */
+let logged=localStorage.getItem("logged")==="true";
 if(logged) loginScreen.style.display="none";
 
-/* ================= DADOS ================= */
+function register(){
+if(!user.value||!pass.value){loginMsg.innerText="Preencha tudo";return;}
+localStorage.setItem("acc_user",user.value);
+localStorage.setItem("acc_pass",pass.value);
+loginMsg.innerText="Conta criada!";
+}
+function login(){
+if(user.value===localStorage.getItem("acc_user") &&
+pass.value===localStorage.getItem("acc_pass")){
+localStorage.setItem("logged","true");
+logged=true;
+loginScreen.style.display="none";
+}else loginMsg.innerText="Erro!";
+}
+
+/* ===== DADOS ===== */
 let beltSpeed=parseFloat(localStorage.getItem("beltSpeed"))||0.12;
 let moneyGain=parseInt(localStorage.getItem("moneyGain"))||25;
 let money=parseInt(localStorage.getItem("money"))||0;
 let stars=parseInt(localStorage.getItem("stars"))||0;
 
 function updateUI(){
-money.innerText=money;
-stars.innerText=stars;
+moneyText.innerText=money;
+starsText.innerText=stars;
 }
 updateUI();
 
@@ -149,7 +133,7 @@ localStorage.setItem("beltSpeed",beltSpeed);
 localStorage.setItem("moneyGain",moneyGain);
 }
 
-/* ================= CENA ================= */
+/* ===== CENA ===== */
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x87ceeb);
 
@@ -163,7 +147,7 @@ const light=new THREE.DirectionalLight(0xffffff,1);
 light.position.set(5,10,5);
 scene.add(light);
 
-/* chão */
+/* CHÃO */
 const floor=new THREE.Mesh(
 new THREE.PlaneGeometry(400,400),
 new THREE.MeshStandardMaterial({color:0x3cb371})
@@ -171,7 +155,15 @@ new THREE.MeshStandardMaterial({color:0x3cb371})
 floor.rotation.x=-Math.PI/2;
 scene.add(floor);
 
-/* esteira */
+/* BASE */
+const base=new THREE.Mesh(
+new THREE.BoxGeometry(60,1,40),
+new THREE.MeshStandardMaterial({color:0xaaaaaa})
+);
+base.position.set(0,0.5,0);
+scene.add(base);
+
+/* ESTEIRA */
 const belt=new THREE.Mesh(
 new THREE.BoxGeometry(50,0.5,5),
 new THREE.MeshStandardMaterial({color:0x333333})
@@ -179,7 +171,7 @@ new THREE.MeshStandardMaterial({color:0x333333})
 belt.position.set(0,1,0);
 scene.add(belt);
 
-/* coletor */
+/* COLETOR */
 const collector=new THREE.Mesh(
 new THREE.BoxGeometry(5,0.5,5),
 new THREE.MeshStandardMaterial({color:0xffff00})
@@ -187,7 +179,50 @@ new THREE.MeshStandardMaterial({color:0xffff00})
 collector.position.set(-25,1,0);
 scene.add(collector);
 
-/* brainrots */
+/* ===== PERSONAGEM ROBLOX ===== */
+const player=new THREE.Group();
+
+function part(w,h,d,color,x,y,z){
+const m=new THREE.Mesh(
+new THREE.BoxGeometry(w,h,d),
+new THREE.MeshStandardMaterial({color})
+);
+m.position.set(x,y,z);
+return m;
+}
+
+player.add(
+part(1.2,1.2,1.2,0xffccaa,0,3.2,0),
+part(1.5,2,1,0x0000ff,0,2,0),
+part(0.6,2,0.6,0x444444,-0.4,1,0),
+part(0.6,2,0.6,0x444444,0.4,1,0),
+part(0.5,1.8,0.5,0xffccaa,-1.1,2.3,0),
+part(0.5,1.8,0.5,0xffccaa,1.1,2.3,0)
+);
+scene.add(player);
+
+/* ===== CONTROLES ===== */
+let keys={},forward=false,back=false,shiftLock=false;
+
+document.addEventListener("keydown",e=>{
+keys[e.key.toLowerCase()]=true;
+if(e.key==="q") shiftLock=!shiftLock;
+});
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+btnForward.onmousedown=()=>forward=true;
+btnForward.onmouseup=()=>forward=false;
+btnBack.onmousedown=()=>back=true;
+btnBack.onmouseup=()=>back=false;
+btnShift.onclick=()=>shiftLock=!shiftLock;
+
+/* ===== CAMERA ===== */
+let camAngle=0;
+document.addEventListener("mousemove",e=>{
+if(e.buttons===1) camAngle+=e.movementX*0.003;
+});
+
+/* ===== SPAWN NA ESTEIRA ===== */
 let brainrots=[];
 setInterval(()=>{
 const b=new THREE.Mesh(
@@ -199,7 +234,7 @@ scene.add(b);
 brainrots.push(b);
 },2000);
 
-/* LOJA */
+/* ===== LOJA ===== */
 function buySpeed(){
 if(stars>=10){stars-=10;beltSpeed+=0.03;save();updateUI();}
 }
@@ -207,29 +242,59 @@ function buyMoney(){
 if(stars>=15){stars-=15;moneyGain+=10;save();updateUI();}
 }
 
-/* LOOP */
+/* ===== LOOP ===== */
 function animate(){
 requestAnimationFrame(animate);
 
+let speed=keys.shift?0.5:0.25;
+
+/* MOVIMENTO */
+if(isMobile){
+if(forward) player.position.z-=speed;
+if(back) player.position.z+=speed;
+}else{
+if(keys.w) player.position.z-=speed;
+if(keys.s) player.position.z+=speed;
+if(keys.a) player.position.x-=speed;
+if(keys.d) player.position.x+=speed;
+}
+
+/* SHIFT LOCK */
+if(shiftLock){
+player.rotation.y=camAngle;
+camera.position.x=player.position.x+Math.sin(camAngle)*4;
+camera.position.z=player.position.z+Math.cos(camAngle)*4;
+}else{
+camera.position.x=player.position.x+Math.sin(camAngle)*8;
+camera.position.z=player.position.z+Math.cos(camAngle)*8;
+}
+camera.position.y=player.position.y+5;
+camera.lookAt(player.position);
+
+/* ESTEIRA */
 brainrots.forEach((b,i)=>{
 b.position.x-=beltSpeed;
 b.rotation.y+=0.05;
 if(b.position.x<-25){
-  if(logged){
-    money+=moneyGain;
-    stars+=1;
-    save();updateUI();
-  }
-  scene.remove(b);
-  brainrots.splice(i,1);
+if(logged){
+money+=moneyGain;
+stars+=1;
+save();updateUI();
+}
+scene.remove(b);
+brainrots.splice(i,1);
 }
 });
 
-camera.position.set(0,10,15);
-camera.lookAt(0,0,0);
 renderer.render(scene,camera);
 }
 animate();
+
+window.addEventListener("resize",()=>{
+camera.aspect=innerWidth/innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(innerWidth,innerHeight);
+});
 </script>
 </body>
 </html>
