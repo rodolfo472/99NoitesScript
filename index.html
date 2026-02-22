@@ -2,159 +2,121 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Mini Rede Social</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verificação</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0f172a;
-  color:white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f1f1f1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
-.box{
-  background:#111827;
-  padding:25px;
-  border-radius:12px;
-  width:350px;
+/* Caixa principal */
+.captcha-box {
+    background: #fff;
+    border: 1px solid #d3d3d3;
+    width: 320px;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.08);
 }
 
-input, textarea, select, button{
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  border-radius:8px;
-  border:none;
+/* Conteúdo interno */
+.captcha-content {
+    display: flex;
+    align-items: center;
 }
 
-button{
-  background:#2563eb;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
+/* Quadrado */
+.checkbox {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #ccc;
+    margin-right: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
 }
 
-.hidden{ display:none }
+/* Check verde */
+.checkmark {
+    display: none;
+    color: #34a853;
+    font-size: 18px;
+}
 
-.post{
-  background:#1f2937;
-  padding:10px;
-  margin-top:10px;
-  border-radius:8px;
+/* Loading */
+.loading {
+    display: none;
+    margin-left: 10px;
+}
+
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #4285f4;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+/* Rodapé pequeno */
+.logo {
+    text-align: right;
+    font-size: 11px;
+    color: #999;
+    margin-top: 10px;
 }
 </style>
 </head>
+
 <body>
 
-<div class="box">
+<div class="captcha-box">
+    <div class="captcha-content">
+        <div class="checkbox" onclick="verificar()">
+            <span class="checkmark" id="check">✔</span>
+        </div>
+        <span>Não sou um robô</span>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
 
-<!-- REGISTRO -->
-<div id="registerPage">
-  <h2>📧 Registro</h2>
-  <input type="email" id="email" placeholder="Digite seu e-mail">
-  <button onclick="register()">Registrar</button>
-  <p id="registerMsg"></p>
-</div>
-
-<!-- ESCOLHER SEXO -->
-<div id="genderPage" class="hidden">
-  <h2>Escolha seu gênero</h2>
-  <select id="gender">
-    <option value="Masculino">Masculino</option>
-    <option value="Feminino">Feminino</option>
-    <option value="Outro">Outro</option>
-  </select>
-  <button onclick="saveGender()">Continuar</button>
-</div>
-
-<!-- POSTAGEM -->
-<div id="postPage" class="hidden">
-  <h2>Faça uma postagem</h2>
-  <textarea id="postText" placeholder="Escreva o que quiser..."></textarea>
-  <button onclick="addPost()">Postar</button>
-  <div id="posts"></div>
-</div>
-
+    <div class="logo">
+        DATAS DO RODOLFO<br>
+        Privacidade - Termos
+    </div>
 </div>
 
 <script>
+function verificar() {
+    var loading = document.getElementById("loading");
+    var check = document.getElementById("check");
 
-function register(){
-  const email = document.getElementById("email").value;
-  const msg = document.getElementById("registerMsg");
+    loading.style.display = "block";
 
-  if(!email){
-    msg.innerText="Digite um e-mail válido!";
-    return;
-  }
+    setTimeout(function() {
+        loading.style.display = "none";
+        check.style.display = "block";
 
-  if(localStorage.getItem("userEmail")){
-    msg.innerText="⚠ Você já está registrado!";
-    return;
-  }
+        setTimeout(function() {
+            window.location.href = "home.html";
+        }, 1000);
 
-  localStorage.setItem("userEmail", email);
-  document.getElementById("registerPage").classList.add("hidden");
-  document.getElementById("genderPage").classList.remove("hidden");
+    }, 2000);
 }
-
-function saveGender(){
-  const gender = document.getElementById("gender").value;
-  localStorage.setItem("userGender", gender);
-
-  document.getElementById("genderPage").classList.add("hidden");
-  document.getElementById("postPage").classList.remove("hidden");
-
-  loadPosts();
-}
-
-function addPost(){
-  const text = document.getElementById("postText").value;
-  if(!text) return;
-
-  let posts = JSON.parse(localStorage.getItem("posts")) || [];
-
-  posts.push({
-    email: localStorage.getItem("userEmail"),
-    gender: localStorage.getItem("userGender"),
-    text: text
-  });
-
-  localStorage.setItem("posts", JSON.stringify(posts));
-  document.getElementById("postText").value="";
-  loadPosts();
-}
-
-function loadPosts(){
-  const postsDiv = document.getElementById("posts");
-  postsDiv.innerHTML="";
-
-  let posts = JSON.parse(localStorage.getItem("posts")) || [];
-
-  posts.forEach(post=>{
-    const div = document.createElement("div");
-    div.className="post";
-    div.innerHTML = `
-      <strong>${post.email}</strong><br>
-      <small>${post.gender}</small><br>
-      ${post.text}
-    `;
-    postsDiv.appendChild(div);
-  });
-}
-
-// Se já estiver registrado, ir direto para posts
-if(localStorage.getItem("userEmail")){
-  document.getElementById("registerPage").classList.add("hidden");
-  document.getElementById("postPage").classList.remove("hidden");
-  loadPosts();
-}
-
 </script>
 
 </body>
