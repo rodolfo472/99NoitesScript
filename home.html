@@ -2,126 +2,172 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DATAS DO RODOLFO</title>
+<title>Jogos2D Studio</title>
 
 <style>
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #000;
-    color: white;
-    text-align: center;
+  margin: 0;
+  display: flex;
+  height: 100vh;
+  font-family: Arial;
+  background: #1e1e1e;
+  color: white;
 }
 
-.container {
-    max-width: 500px;
-    margin: auto;
-    padding: 20px;
+/* Sidebar */
+#sidebar {
+  width: 200px;
+  background: #2b2b2b;
+  padding: 10px;
+  overflow-y: auto;
 }
 
-.profile-img {
-    width: 130px;
-    height: 130px;
-    border-radius: 50%;
-    margin-top: 30px;
-    border: 3px solid white;
-    object-fit: cover;
+#sidebar h3 {
+  margin-top: 0;
 }
 
-h1 {
-    margin-top: 15px;
-    font-size: 24px;
-    color: #ff3c00;
+/* Game Area */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-.description {
-    color: #aaa;
-    margin-bottom: 25px;
+#game {
+  flex: 1;
+  background: #111;
+  position: relative;
 }
 
-.section-title {
-    margin: 30px 0 15px;
-    font-weight: bold;
-    letter-spacing: 2px;
-    font-size: 15px;
+.obj {
+  position: absolute;
 }
 
-.gta-title {
-    color: #00ff88;
+/* Explorer */
+#explorer {
+  font-size: 13px;
 }
 
-.datas-title {
-    color: #ff3c00;
+/* Bottom Console */
+#console {
+  height: 150px;
+  background: black;
+  overflow-y: auto;
+  padding: 5px;
+  font-size: 12px;
 }
 
-.link-btn {
-    display: flex;
-    align-items: center;
-    background: #e6e6e6;
-    color: black;
-    padding: 15px;
-    border-radius: 40px;
-    margin: 12px 0;
-    text-decoration: none;
-    font-weight: bold;
-    transition: 0.3s;
+#input {
+  display: flex;
 }
 
-.link-btn:hover {
-    transform: scale(1.05);
+input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  outline: none;
 }
-
-.link-btn img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 15px;
-    object-fit: cover;
+button {
+  padding: 10px;
+  background: #444;
+  color: white;
+  border: none;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div id="sidebar">
+  <h3>🧰 Toolbox</h3>
+  <button onclick="create('block')">Bloco</button>
+  <button onclick="create('npc')">NPC Jorge</button>
+  <button onclick="create('player')">Player</button>
 
-    <!-- FOTO PERFIL -->
-    <img src="https://i.postimg.cc/BvcCdFjz/1000041480.jpg" class="profile-img" alt="Foto">
-
-    <!-- TÍTULO -->
-    <h1>DATAS DO RODOLFO</h1>
-
-    <p class="description">
-        Downloads sempre atualizados 🚀
-    </p>
-
-    <!-- SEÇÃO GTA -->
-    <div class="section-title gta-title">
-        GTA QUE EU JOGO AQ!
-    </div>
-
-    <a class="link-btn" href="https://www.mediafire.com/file/w3v8w8iwqfpykge/GTA_que_eu_jogo_%2521.apk/file" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/pt/d/d3/Grand_Theft_Auto_San_Andreas_capa.png">
-        GTA do Rodolfo
-    </a>
-
-    <!-- SEÇÃO DATAS -->
-    <div class="section-title datas-title">
-        DATAS DO RODOLFO
-    </div>
-
-    <a class="link-btn" href="https://www.mediafire.com/file/cjct734vs6l5veu/Ant-Lag+type+FIVEM+(By+Nil+Plays).zip/file" target="_blank">
-        <img src="https://i.postimg.cc/BvcCdFjz/1000041480.jpg">
-        Data estilo FiveM Android Mali
-    </a>
-
-    <a class="link-btn" href="#" target="_blank">
-        <img src="https://i.postimg.cc/BvcCdFjz/1000041480.jpg">
-        Data 2
-    </a>
-
+  <h3>📦 Explorer</h3>
+  <div id="explorer"></div>
 </div>
+
+<div id="main">
+  <div id="game"></div>
+
+  <div id="console"></div>
+
+  <div id="input">
+    <input id="cmd" placeholder="Digite comando... (ex: criar bloco)">
+    <button onclick="run()">Enviar</button>
+  </div>
+</div>
+
+<script>
+let game = document.getElementById("game")
+let consoleBox = document.getElementById("console")
+let explorer = document.getElementById("explorer")
+let cmd = document.getElementById("cmd")
+
+let objs = []
+let id = 0
+
+function log(msg){
+  consoleBox.innerHTML += msg + "<br>"
+  consoleBox.scrollTop = consoleBox.scrollHeight
+}
+
+function updateExplorer(){
+  explorer.innerHTML = ""
+  objs.forEach(o=>{
+    explorer.innerHTML += "• " + o.name + "<br>"
+  })
+}
+
+function create(type){
+  let el = document.createElement("div")
+  el.classList.add("obj")
+
+  let obj = {id: id++, el: el}
+
+  if(type === "block"){
+    el.style.width = "50px"
+    el.style.height = "50px"
+    el.style.background = "blue"
+    obj.name = "Bloco"
+  }
+
+  if(type === "npc"){
+    el.style.width = "40px"
+    el.style.height = "40px"
+    el.style.background = "green"
+    obj.name = "Jorge"
+  }
+
+  if(type === "player"){
+    el.style.width = "40px"
+    el.style.height = "40px"
+    el.style.background = "red"
+    obj.name = "Player"
+  }
+
+  el.style.left = Math.random()*300 + "px"
+  el.style.top = Math.random()*200 + "px"
+
+  game.appendChild(el)
+  objs.push(obj)
+
+  updateExplorer()
+  log("Criado: " + obj.name)
+}
+
+function run(){
+  let text = cmd.value.toLowerCase()
+
+  if(text.includes("bloco")) create("block")
+  else if(text.includes("jorge")) create("npc")
+  else if(text.includes("player")) create("player")
+  else log("Comando não reconhecido")
+
+  cmd.value = ""
+}
+</script>
 
 </body>
 </html>
