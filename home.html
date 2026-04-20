@@ -26,38 +26,54 @@ body {
   margin-top: 0;
 }
 
-/* Game Area */
+/* Main */
 #main {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
+/* Game area */
 #game {
   flex: 1;
   background: #111;
   position: relative;
+  overflow: hidden;
 }
 
+/* Grid */
+#game::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(#222 1px, transparent 1px),
+                    linear-gradient(90deg, #222 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Objects */
 .obj {
   position: absolute;
+  border: 2px solid transparent;
 }
 
-/* Explorer */
-#explorer {
-  font-size: 13px;
+/* Selected */
+.selected {
+  border: 2px solid yellow;
 }
 
-/* Bottom Console */
+/* Console */
 #console {
-  height: 150px;
+  height: 120px;
   background: black;
   overflow-y: auto;
-  padding: 5px;
   font-size: 12px;
+  padding: 5px;
 }
 
-#input {
+/* Input */
+#inputArea {
   display: flex;
 }
 
@@ -65,38 +81,43 @@ input {
   flex: 1;
   padding: 10px;
   border: none;
-  outline: none;
 }
+
 button {
   padding: 10px;
   background: #444;
   color: white;
   border: none;
+  margin: 2px 0;
 }
 </style>
 </head>
 
 <body>
 
+<!-- Sidebar -->
 <div id="sidebar">
   <h3>🧰 Toolbox</h3>
   <button onclick="create('block')">Bloco</button>
-  <button onclick="create('npc')">NPC Jorge</button>
+  <button onclick="create('npc')">Jorge</button>
   <button onclick="create('player')">Player</button>
 
   <h3>📦 Explorer</h3>
   <div id="explorer"></div>
 </div>
 
+<!-- Main -->
 <div id="main">
+
   <div id="game"></div>
 
   <div id="console"></div>
 
-  <div id="input">
-    <input id="cmd" placeholder="Digite comando... (ex: criar bloco)">
-    <button onclick="run()">Enviar</button>
+  <div id="inputArea">
+    <input id="cmd" placeholder="Ex: criar bloco | mover direita">
+    <button onclick="run()">OK</button>
   </div>
+
 </div>
 
 <script>
@@ -107,6 +128,7 @@ let cmd = document.getElementById("cmd")
 
 let objs = []
 let id = 0
+let selected = null
 
 function log(msg){
   consoleBox.innerHTML += msg + "<br>"
@@ -120,15 +142,16 @@ function updateExplorer(){
   })
 }
 
+/* Criar objetos */
 function create(type){
   let el = document.createElement("div")
   el.classList.add("obj")
 
-  let obj = {id: id++, el: el}
+  let obj = {id: id++, el: el, name: ""}
 
   if(type === "block"){
-    el.style.width = "50px"
-    el.style.height = "50px"
+    el.style.width = "60px"
+    el.style.height = "60px"
     el.style.background = "blue"
     obj.name = "Bloco"
   }
@@ -147,8 +170,38 @@ function create(type){
     obj.name = "Player"
   }
 
-  el.style.left = Math.random()*300 + "px"
-  el.style.top = Math.random()*200 + "px"
+  el.style.left = "100px"
+  el.style.top = "100px"
+
+  /* Selecionar */
+  el.onclick = ()=>{
+    document.querySelectorAll(".obj").forEach(e=>e.classList.remove("selected"))
+    el.classList.add("selected")
+    selected = obj
+    log("Selecionado: " + obj.name)
+  }
+
+  /* Arrastar (mobile) */
+  let dragging = false
+
+  el.addEventListener("touchstart", ()=> dragging = true)
+  el.addEventListener("touchend", ()=> dragging = false)
+
+  el.addEventListener("touchmove", (e)=>{
+    if(!dragging) return
+
+    let touch = e.touches[0]
+
+    let x = touch.clientX - 20
+    let y = touch.clientY - 20
+
+    /* Snap no grid */
+    x = Math.round(x / 40) * 40
+    y = Math.round(y / 40) * 40
+
+    el.style.left = x + "px"
+    el.style.top = y + "px"
+  })
 
   game.appendChild(el)
   objs.push(obj)
@@ -157,16 +210,49 @@ function create(type){
   log("Criado: " + obj.name)
 }
 
+/* Comandos */
 function run(){
   let text = cmd.value.toLowerCase()
 
   if(text.includes("bloco")) create("block")
   else if(text.includes("jorge")) create("npc")
   else if(text.includes("player")) create("player")
-  else log("Comando não reconhecido")
+
+  else if(text.includes("deletar") && selected){
+    selected.el.remove()
+    objs = objs.filter(o => o !== selected)
+    selected = null
+    updateExplorer()
+    log("Objeto deletado")
+  }
+
+  else if(text.includes("direita") && selected){
+    selected.el.style.left = (parseInt(selected.el.style.left)+40)+"px"
+  }
+
+  else if(text.includes("esquerda") && selected){
+    selected.el.style.left = (parseInt(selected.el.style.left)-40)+"px"
+  }
+
+  else if(text.includes("baixo") && selected){
+    selected.el.style.top = (parseInt(selected.el.style.top)+40)+"px"
+  }
+
+  else if(text.includes("cima") && selected){
+    selected.el.style.top = (parseInt(selected.el.style.top)-40)+"px"
+  }
+
+  else{
+    log("Comando não reconhecido")
+  }
 
   cmd.value = ""
 }
+
+/* Tecla Enter */
+cmd.addEventListener("keypress", function(e){
+  if(e.key === "Enter") run()
+})
 </script>
 
 </body>
