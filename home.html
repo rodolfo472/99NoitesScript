@@ -1,10 +1,136 @@
-!DOCTYPE html>  <html>  <head>  
-    <title>R.A gamer public</title>  
-</head>  <body>  <h1 style="color: red;">ATENÇÃO: É UM SITE DE PROGRAMAÇÃO</h1>  
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TPBR - TROPA DO BRASIL</title>
 
-<p style="color: blue;">  
-    Bem-vindo! Vocês querem aprender a programar?  
-</p>
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #050505;
+    color: white;
+}
 
-</body>  </html>  
-E ai ta bom pro 2 dia?
+/* HEADER */
+header {
+    background: linear-gradient(90deg, #009c3b, #ffdf00);
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 24px;
+    letter-spacing: 2px;
+}
+
+/* BANNER */
+.banner {
+    background: url('https://cdn.discordapp.com/attachments/1383080185779191870/1498719009741209810/file_000000006c84720ebbb6ca3efa8d4bea.png?ex=69f22e58&is=69f0dcd8&hm=7c3002826e813ce1c13ee9d844b82c3954d494e773840a0339537069c169f743') center/cover;
+    height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.banner h1 {
+    background: rgba(0,0,0,0.7);
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-size: 34px;
+    text-shadow: 0 0 10px green;
+}
+
+/* SEÇÕES */
+section {
+    padding: 20px;
+}
+
+.card {
+    background: #0f0f0f;
+    border: 2px solid #009c3b;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px #009c3b33;
+}
+
+/* BOTÃO */
+button {
+    background: #009c3b;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #ffdf00;
+    color: black;
+    transform: scale(1.05);
+}
+
+/* RODAPÉ */
+footer {
+    text-align: center;
+    padding: 10px;
+    background: #000;
+    font-size: 14px;
+    border-top: 2px solid #009c3b;
+}
+</style>
+
+</head>
+
+<body>
+
+<header>
+🇧🇷 TROPA DO BRASIL - TPBR 🇧🇷
+</header>
+
+<div class="banner">
+    <h1>ENTRE PRA TROPA</h1>
+</div>
+
+<section>
+
+    <div class="card">
+        <h2>🔥 Sobre a Tropa</h2>
+        <p>
+            A <strong>TPBR - Tropa do Brasil</strong> é uma equipe focada em união,
+            estratégia e lealdade dentro do <strong>PBR - Projeto BR</strong>.
+            Aqui só fica quem joga junto e respeita a tropa.
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>🎮 Regras da Tropa</h2>
+        <ul>
+            <li>🤝 Respeitar todos os parceiros da tropa</li>
+            <li>🛡️ Nunca trair a tropa</li>
+        </ul>
+        <p>⚠️ Tropa oficial do jogo PBR - Projeto BR</p>
+    </div>
+
+    <div class="card">
+        <h2>🚀 Entrar na Tropa</h2>
+        <p>Clique abaixo e entre no nosso Discord:</p>
+        <button onclick="entrar()">ENTRAR AGORA</button>
+    </div>
+
+</section>
+
+<footer>
+© 2026 - TPBR | Tropa do Brasil
+</footer>
+
+<script>
+function entrar() {
+    window.open("https://discord.gg/K7N48za5B", "_blank");
+}
+</script>
+
+</body>
+</html>
